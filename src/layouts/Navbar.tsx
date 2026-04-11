@@ -34,10 +34,9 @@ export const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Focus input when search opens
   useEffect(() => {
     if (isSearchOpen) {
-      setTimeout(() => searchInputRef.current?.focus(), 150)
+      setTimeout(() => searchInputRef.current?.focus(), 80)
     } else {
       setSearchQuery("")
     }
@@ -60,73 +59,88 @@ export const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full glass border-b border-border">
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
+        <div className="flex h-16 items-center gap-3">
 
-          {/* Logo — always visible */}
-          <div className="flex shrink-0 items-center">
+          {/* ── Logo ── */}
+          <motion.div layout="position" className="shrink-0">
             <Link to="/" className="text-2xl font-bold tracking-tight text-primary whitespace-nowrap">
               Book<span className="text-blue-600 dark:text-blue-400">Verse</span>
             </Link>
-          </div>
+          </motion.div>
 
-          {/* Desktop Nav Links — always visible, compress slightly when search open */}
-          <div className="hidden md:block">
-            <div className={`flex items-center transition-all duration-200 ${isSearchOpen ? "ml-4 space-x-4" : "ml-6 space-x-8"}`}>
+          {/* ── Center: Nav Links + Search (always in middle) ── */}
+          <div className="hidden md:flex flex-1 items-center justify-center gap-3 min-w-0">
+
+            {/* Nav links — always visible, shift left when search opens */}
+            <motion.div
+              layout
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              className="flex items-center gap-6 shrink-0"
+            >
               {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap ${isSearchOpen ? "text-xs" : "text-sm"}`}
-                >
-                  {link.name}
-                </Link>
+                <motion.div key={link.name} layout="position">
+                  <Link
+                    to={link.path}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                  >
+                    {link.name}
+                  </Link>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
+
+            {/* Search bar — expands next to nav links */}
+            <AnimatePresence>
+              {isSearchOpen && (
+                <motion.form
+                  key="search-form"
+                  initial={{ opacity: 0, width: 0, marginLeft: 0 }}
+                  animate={{ opacity: 1, width: 240, marginLeft: 8 }}
+                  exit={{ opacity: 0, width: 0, marginLeft: 0 }}
+                  transition={{ type: "spring", stiffness: 360, damping: 30, mass: 0.7 }}
+                  style={{ overflow: "hidden", flexShrink: 0 }}
+                  onSubmit={handleSearchSubmit}
+                  className="flex items-center gap-2"
+                >
+                  <div className="relative" style={{ width: 208 }}>
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="Search books, authors..."
+                      className="w-full rounded-full border border-primary/40 bg-card/90 backdrop-blur-sm py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+                    />
+                  </div>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setIsSearchOpen(false)}
+                    className="shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </motion.button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Animated Search Bar — compact size */}
-          <AnimatePresence>
-            {isSearchOpen && (
-              <motion.form
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: 200 }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ type: "spring", stiffness: 320, damping: 28 }}
-                style={{ overflow: "hidden" }}
-                onSubmit={handleSearchSubmit}
-                className="flex items-center gap-1.5 ml-auto"
-              >
-                <div className="relative" style={{ width: 180 }}>
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search..."
-                    className="w-full rounded-full border border-input bg-background py-1.5 pl-8 pr-3 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsSearchOpen(false)}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </motion.form>
-            )}
-          </AnimatePresence>
+          {/* ── Actions ── */}
+          <div className="hidden md:flex items-center gap-4 shrink-0">
 
-          {/* Actions */}
-          <div className="hidden md:flex items-center space-x-5 shrink-0">
-            {/* Search toggle */}
-            <AnimatePresence>
+            {/* Search toggle icon */}
+            <AnimatePresence mode="wait">
               {!isSearchOpen && (
                 <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  key="search-icon"
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  transition={{ duration: 0.15 }}
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setIsSearchOpen(true)}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -135,16 +149,28 @@ export const Navbar = () => {
               )}
             </AnimatePresence>
 
+            {/* Wishlist */}
             <Link to="/wishlist" className="text-muted-foreground hover:text-foreground transition-colors">
               <Heart className="h-5 w-5" />
             </Link>
+
+            {/* Cart */}
             <button onClick={openDrawer} className="text-muted-foreground hover:text-foreground transition-colors relative">
               <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white shadow-sm">
-                  {cartCount}
-                </span>
-              )}
+              <AnimatePresence>
+                {cartCount > 0 && (
+                  <motion.span
+                    key={cartCount}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white shadow-sm"
+                  >
+                    {cartCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
 
             {/* User Profile */}
@@ -160,10 +186,10 @@ export const Navbar = () => {
                 <AnimatePresence>
                   {profileOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
                       className="absolute right-0 mt-2 w-48 rounded-xl bg-card border border-border shadow-lg overflow-hidden py-1"
                     >
                       <div className="px-4 py-3 border-b border-border">
@@ -192,23 +218,26 @@ export const Navbar = () => {
               </Link>
             )}
 
-            <button
+            {/* Theme toggle */}
+            <motion.button
+              whileHover={{ rotate: 15 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
+            </motion.button>
           </div>
 
-          {/* Mobile right side */}
-          <div className="flex md:hidden items-center space-x-3 shrink-0">
+          {/* ── Mobile right side ── */}
+          <div className="flex md:hidden items-center gap-3 shrink-0 ml-auto">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
-            <button onClick={openDrawer} className="text-muted-foreground hover:text-foreground relative">
+            <button onClick={openDrawer} className="text-muted-foreground hover:text-foreground transition-colors relative">
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
@@ -220,68 +249,81 @@ export const Navbar = () => {
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none"
             >
-              <span className="sr-only">Open main menu</span>
-              {isOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
+              <AnimatePresence mode="wait">
+                {isOpen ? (
+                  <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <X className="h-6 w-6" />
+                  </motion.span>
+                ) : (
+                  <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Menu className="h-6 w-6" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
           </div>
+
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* ── Mobile Menu ── */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-border bg-background overflow-hidden"
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="md:hidden border-t border-border bg-background/95 backdrop-blur-sm overflow-hidden"
           >
-            <div className="space-y-1 px-4 pb-3 pt-2">
+            <div className="space-y-1 px-4 pb-4 pt-3">
               {/* Mobile search */}
-              <form onSubmit={handleSearchSubmit} className="relative mb-3">
+              <form onSubmit={handleSearchSubmit} className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search books, authors..."
-                  className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-full border border-input bg-card py-2.5 pl-9 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </form>
 
-              {navLinks.map((link) => (
-                <Link
+              {navLinks.map((link, i) => (
+                <motion.div
                   key={link.name}
-                  to={link.path}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                  onClick={() => setIsOpen(false)}
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
                 >
-                  {link.name}
-                </Link>
+                  <Link
+                    to={link.path}
+                    className="block rounded-xl px-3 py-2.5 text-base font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.name}
+                  </Link>
+                </motion.div>
               ))}
+
               <div className="mt-4 border-t border-border pt-4 flex justify-around pb-2">
-                <Link to="/wishlist" onClick={() => setIsOpen(false)} className="flex flex-col items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-                  <Heart className="h-6 w-6 mb-1" />
-                  Wishlist
+                <Link to="/wishlist" onClick={() => setIsOpen(false)} className="flex flex-col items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  <Heart className="h-5 w-5" /> Wishlist
                 </Link>
                 {user ? (
-                  <Link to="/profile" onClick={() => setIsOpen(false)} className="flex flex-col items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-                    <User className="h-6 w-6 mb-1" />
-                    Profile
+                  <Link to="/profile" onClick={() => setIsOpen(false)} className="flex flex-col items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    <User className="h-5 w-5" /> Profile
                   </Link>
                 ) : (
-                  <Link to="/auth" onClick={() => setIsOpen(false)} className="flex flex-col items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-                    <LogOut className="h-6 w-6 mb-1" />
-                    Sign In
+                  <Link to="/auth" onClick={() => setIsOpen(false)} className="flex flex-col items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    <LogOut className="h-5 w-5" /> Sign In
                   </Link>
                 )}
               </div>
               {user && (
-                <div className="px-3 py-2 mt-2">
-                  <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 rounded-lg bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/20">
-                    <LogOut className="h-4 w-4" /> Sign out ({user.email})
-                  </button>
-                </div>
+                <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 rounded-xl bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors">
+                  <LogOut className="h-4 w-4" /> Sign out ({user.email})
+                </button>
               )}
             </div>
           </motion.div>
