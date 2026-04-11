@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
-import { Search, BookOpen, Palette, Code2, FlaskConical, Globe, Music, Film, Heart, Star, Cpu, Leaf, Coins, Brain, Brush, Mountain, Telescope, ScrollText, Swords, Baby } from "lucide-react"
+import { Search, X, BookOpen, Palette, Code2, FlaskConical, Globe, Music, Film, Heart, Star, Cpu, Leaf, Coins, Brain, Brush, Mountain, Telescope, ScrollText, Swords, Baby } from "lucide-react"
 
 const CATEGORIES = [
   { name: "Fiction", icon: BookOpen, count: 284, gradient: "from-violet-500/20 to-purple-500/10", iconColor: "text-violet-500", border: "border-violet-500/20" },
@@ -87,19 +87,7 @@ export const Categories = () => {
             placeholder="Search a category..."
             className="w-full rounded-2xl border border-input bg-card py-4 pl-12 pr-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
           />
-          <AnimatePresence>
-            {query && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                onClick={() => setQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                ✕
-              </motion.button>
-            )}
-          </AnimatePresence>
+
         </div>
         <AnimatePresence>
           {query && (
