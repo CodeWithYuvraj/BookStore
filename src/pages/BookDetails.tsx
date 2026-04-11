@@ -116,7 +116,7 @@ export const BookDetails = () => {
             ))}
           </div>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             {activeTab === "overview" && (
               <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <p className="text-muted-foreground leading-relaxed">{book.description}</p>
