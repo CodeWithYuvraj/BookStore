@@ -5,7 +5,7 @@ import { Button } from "../components/ui/Button"
 
 export const NotFound = () => {
   return (
-    <div className="min-h-[80vh] flex items-center justify-center relative overflow-hidden bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-background px-4 py-20">
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
