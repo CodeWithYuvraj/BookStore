@@ -19,7 +19,7 @@ const BOOK_COVERS = [
 
 const CATEGORY_LIST = ["Fiction", "Design", "Programming", "Science", "History", "Psychology", "Technology", "Self-Help", "Fantasy", "Romance", "Non-Fiction"]
 
-const ALL_BOOKS = Array.from({ length: 48 }).map((_, i) => ({
+const ALL_BOOKS = Array.from({ length: 82 }).map((_, i) => ({
   id: `book-${i}`,
   title: `The Art of ${["Programming", "Design", "Writing", "Thinking", "Leadership", "Creative Coding", "Science", "History"][i % 8]}`,
   author: ["Don Norman", "Robert C. Martin", "Martin Fowler", "Kent Beck", "Linus Torvalds", "Jane Austen"][i % 6],
@@ -43,10 +43,14 @@ export const BookListing = () => {
   const [sortBy, setSortBy] = useState("popular")
   const [isLoading, setIsLoading] = useState(true)
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 28
+
   // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery)
+      setCurrentPage(1)
       setIsLoading(true)
       setTimeout(() => setIsLoading(false), 600)
     }, 400)
@@ -63,6 +67,7 @@ export const BookListing = () => {
     setSelectedCategories(prev =>
       prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
     )
+    setCurrentPage(1)
   }
 
   const filteredBooks = ALL_BOOKS.filter(b => {
@@ -72,6 +77,10 @@ export const BookListing = () => {
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(b.category)
     return matchesSearch && matchesCategory
   })
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredBooks.length / ITEMS_PER_PAGE)
+  const paginatedBooks = filteredBooks.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-8">
@@ -239,7 +248,7 @@ export const BookListing = () => {
                 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
                 : "flex flex-col gap-6"
             }>
-              {filteredBooks.map((book) => (
+              {paginatedBooks.map((book) => (
                 <div key={book.id} className={viewType === "list" ? "w-full" : ""}>
                    {viewType === "grid" ? (
                      <BookCard {...book} rating={Number(book.rating)} />
@@ -276,14 +285,42 @@ export const BookListing = () => {
           )}
           
           {/* Pagination */}
-          {filteredBooks.length > 0 && (
-            <div className="flex items-center justify-center gap-2 mt-12">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="default" size="sm" className="w-8">1</Button>
-              <Button variant="outline" size="sm" className="w-8 hover:bg-muted">2</Button>
-              <Button variant="outline" size="sm" className="w-8 hover:bg-muted">3</Button>
-              <span className="text-muted-foreground">...</span>
-              <Button variant="outline" size="sm">Next</Button>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-12 flex-wrap">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              
+              <div className="flex gap-1 overflow-x-auto max-w-full no-scrollbar pb-1">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <Button 
+                    key={i}
+                    variant={currentPage === i + 1 ? "default" : "outline"}
+                    size="sm" 
+                    className="w-8 shrink-0"
+                    onClick={() => {
+                      setCurrentPage(i + 1)
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                  >
+                    {i + 1}
+                  </Button>
+                ))}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
             </div>
           )}
         </div>
