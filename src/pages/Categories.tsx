@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { Search, X, BookOpen, Palette, Code2, FlaskConical, Globe, Music, Film, Heart, Star, Cpu, Leaf, Coins, Brain, Brush, Mountain, Telescope, ScrollText, Swords, Baby } from "lucide-react"
 import { getBookCountByCategory } from "../data/books"
+import { Button } from "../components/ui/Button"
 
 const CATEGORIES = [
   { name: "Fiction", icon: BookOpen, count: getBookCountByCategory("Fiction"), gradient: "from-violet-500/20 to-purple-500/10", iconColor: "text-violet-500", border: "border-violet-500/20" },

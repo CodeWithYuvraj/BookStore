@@ -1,13 +1,29 @@
+import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Trash2, ShoppingCart, ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useCart } from "../../context/CartContext"
+import { useToast } from "../../context/ToastContext"
 import { Button } from "./Button"
 
 export const CartDrawer = () => {
   const { isDrawerOpen, closeDrawer, items, updateQuantity, removeItem } = useCart()
+  const { addToast } = useToast()
+  const [promoCode, setPromoCode] = useState("")
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null)
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const discount = appliedPromo === "SAVE10" ? subtotal * 0.1 : 0
+  const total = subtotal - discount
+
+  const handleApplyPromo = () => {
+    if (promoCode.toUpperCase() === "SAVE10") {
+      setAppliedPromo("SAVE10")
+      addToast("Promo code SAVE10 applied!", "success")
+    } else {
+      addToast("Invalid promo code. Try SAVE10!", "error")
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -79,9 +95,34 @@ export const CartDrawer = () => {
 
             {items.length > 0 && (
               <div className="p-6 border-t border-border bg-muted/50">
-                <div className="flex justify-between mb-4">
-                  <span className="font-medium text-foreground">Subtotal</span>
-                  <span className="font-bold text-lg">${subtotal.toFixed(2)}</span>
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium text-foreground text-sm">Subtotal</span>
+                  <span className="font-bold text-foreground">${subtotal.toFixed(2)}</span>
+                </div>
+                {appliedPromo && (
+                  <div className="flex justify-between mb-2 text-green-600 dark:text-green-400">
+                    <span className="text-sm font-medium">Discount (SAVE10)</span>
+                    <span className="font-bold">-${discount.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {/* Promo Code Input */}
+                <div className="mt-4 mb-6">
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Promo code" 
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <Button variant="outline" size="sm" onClick={handleApplyPromo}>Apply</Button>
+                  </div>
+                </div>
+
+                <div className="flex justify-between mb-4 border-t border-border pt-4">
+                  <span className="font-bold text-foreground text-lg">Total</span>
+                  <span className="font-black text-xl text-primary">${total.toFixed(2)}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-6">Shipping and taxes calculated at checkout.</p>
                 <Link to="/checkout" onClick={closeDrawer}>

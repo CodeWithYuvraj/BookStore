@@ -34,6 +34,11 @@ export interface Book {
   category: string;
   coverUrl: string;
   language: string;
+  description: string;
+  pages: number;
+  publisher: string;
+  publicationDate: string;
+  images: string[];
 }
 
 const generateBooks = () => {
@@ -43,6 +48,8 @@ const generateBooks = () => {
   CATEGORY_NAMES.forEach((category, catIdx) => {
     for (let i = 0; i < 35; i++) {
       const globalIdx = catIdx * 35 + i;
+      const primaryCover = `https://images.unsplash.com/photo-${BOOK_COVERS[globalIdx % BOOK_COVERS.length]}?auto=format&fit=crop&q=80&w=400`;
+      
       books.push({
         id: `book-${globalIdx}`,
         title: `The Art of ${TITLE_SUFFIXES[globalIdx % TITLE_SUFFIXES.length]} Volume ${i + 1}`,
@@ -50,16 +57,25 @@ const generateBooks = () => {
         price: 15 + (globalIdx * 1.5) % 40,
         rating: parseFloat((4 + (globalIdx % 10) / 10).toPrecision(2)),
         category: category,
-        coverUrl: `https://images.unsplash.com/photo-${BOOK_COVERS[globalIdx % BOOK_COVERS.length]}?auto=format&fit=crop&q=80&w=400`,
-        language: globalIdx % 2 === 0 ? "English" : "Spanish"
+        coverUrl: primaryCover,
+        language: globalIdx % 2 === 0 ? "English" : "Spanish",
+        description: `This is a comprehensive guide exploring ${category} from a unique perspective. Written by ${AUTHORS[globalIdx % AUTHORS.length]}, this volume dives deep into the fundamentals and advanced concepts that shape our understanding of the field. A must-read for both beginners and seasoned professionals looking to expand their knowledge base. The book offers practical insights alongside theoretical frameworks, making it an invaluable addition to your library.`,
+        pages: 200 + (globalIdx * 7) % 300,
+        publisher: "BookVerse Publishing House",
+        publicationDate: `202${globalIdx % 6}-0${(globalIdx % 9) + 1}-1${(globalIdx % 9) + 1}`,
+        images: [
+          primaryCover,
+          `https://images.unsplash.com/photo-${BOOK_COVERS[(globalIdx + 1) % BOOK_COVERS.length]}?auto=format&fit=crop&q=80&w=400`,
+          `https://images.unsplash.com/photo-${BOOK_COVERS[(globalIdx + 2) % BOOK_COVERS.length]}?auto=format&fit=crop&q=80&w=400`
+        ]
       });
     }
   });
   return books;
 };
 
-export const ALL_BOOKS = generateBooks();
+export const BOOKS = generateBooks();
 
 export const getBookCountByCategory = (category: string) => {
-  return ALL_BOOKS.filter(b => b.category === category).length;
+  return BOOKS.filter(b => b.category === category).length;
 };

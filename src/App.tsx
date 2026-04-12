@@ -17,7 +17,22 @@ const Profile = lazy(() => import("./pages/Profile").then(m => ({ default: m.Pro
 const Auth = lazy(() => import("./pages/Auth").then(m => ({ default: m.Auth })))
 const Categories = lazy(() => import("./pages/Categories").then(m => ({ default: m.Categories })))
 const BecomeSeller = lazy(() => import("./pages/BecomeSeller").then(m => ({ default: m.BecomeSeller })))
+const AboutUs = lazy(() => import("./pages/AboutUs").then(m => ({ default: m.AboutUs })))
+const ContactUs = lazy(() => import("./pages/ContactUs").then(m => ({ default: m.ContactUs })))
+const FAQ = lazy(() => import("./pages/FAQ").then(m => ({ default: m.FAQ })))
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy").then(m => ({ default: m.PrivacyPolicy })))
+const Terms = lazy(() => import("./pages/Terms").then(m => ({ default: m.Terms })))
+const AuthorProfile = lazy(() => import("./pages/AuthorProfile").then(m => ({ default: m.AuthorProfile })))
+const Deals = lazy(() => import("./pages/Deals").then(m => ({ default: m.Deals })))
+const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation").then(m => ({ default: m.OrderConfirmation })))
+const OrderTracking = lazy(() => import("./pages/OrderTracking").then(m => ({ default: m.OrderTracking })))
+const BlogList = lazy(() => import("./pages/BlogList").then(m => ({ default: m.BlogList })))
+const BlogPostDetail = lazy(() => import("./pages/BlogPostDetail").then(m => ({ default: m.BlogPostDetail })))
+const GiftCards = lazy(() => import("./pages/GiftCards").then(m => ({ default: m.GiftCards })))
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword").then(m => ({ default: m.ForgotPassword })))
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard").then(m => ({ default: m.AdminDashboard })))
 const SellerDashboard = lazy(() => import("./pages/SellerDashboard").then(m => ({ default: m.SellerDashboard })))
+const NotFound = lazy(() => import("./pages/NotFound").then(m => ({ default: m.NotFound })))
 
 const isAuthenticated = () => {
   const email = localStorage.getItem("user_email")
@@ -52,7 +67,7 @@ const wrap = (el: React.ReactNode) => <Suspense fallback={<PageLoader />}>{el}</
 
 function App() {
   const location = useLocation()
-  const isAuthPage = location.pathname === "/auth"
+  const isStandalonePage = location.pathname === "/auth" || location.pathname === "/404"
   const [showSplash, setShowSplash] = useState(true)
   const handleSplashDone = useCallback(() => setShowSplash(false), [])
 
@@ -64,7 +79,7 @@ function App() {
 
       {!showSplash && (
         <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors duration-300">
-          {!isAuthPage && <Navbar />}
+          {!isStandalonePage && <Navbar />}
           <CartDrawer />
           <main className="flex-1">
             {/*
@@ -95,10 +110,36 @@ function App() {
                 <Route path="/seller-dashboard" element={<SellerRoute>{wrap(<SellerDashboard />)}</SellerRoute>} />
 
                 <Route path="/auth" element={<PublicOnlyRoute>{wrap(<Auth />)}</PublicOnlyRoute>} />
+                
+                {/* Core Informational Pages */}
+                <Route path="/about" element={wrap(<AboutUs />)} />
+                <Route path="/contact" element={wrap(<ContactUs />)} />
+                <Route path="/faq" element={wrap(<FAQ />)} />
+                <Route path="/privacy-policy" element={wrap(<PrivacyPolicy />)} />
+                <Route path="/terms" element={wrap(<Terms />)} />
+
+                {/* Enhanced Catalog Pages */}
+                <Route path="/author/:id" element={wrap(<AuthorProfile />)} />
+                <Route path="/deals" element={wrap(<Deals />)} />
+
+                {/* Post-Purchase Flow */}
+                <Route path="/order-confirmation" element={wrap(<OrderConfirmation />)} />
+                <Route path="/order-tracking" element={wrap(<OrderTracking />)} />
+
+                {/* Content & Extras */}
+                <Route path="/blog" element={wrap(<BlogList />)} />
+                <Route path="/blog/:id" element={wrap(<BlogPostDetail />)} />
+                <Route path="/gift-cards" element={wrap(<GiftCards />)} />
+                <Route path="/forgot-password" element={wrap(<ForgotPassword />)} />
+                <Route path="/admin" element={wrap(<AdminDashboard />)} />
+
+                {/* 404 Routes */}
+                <Route path="/404" element={wrap(<NotFound />)} />
+                <Route path="*" element={<Navigate to="/404" replace />} />
               </Routes>
             </motion.div>
           </main>
-          {!isAuthPage && <Footer />}
+          {!isStandalonePage && <Footer />}
         </div>
       )}
     </>

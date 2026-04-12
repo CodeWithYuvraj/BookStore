@@ -177,7 +177,7 @@ export const Auth = () => {
                       <span className="text-violet-600 dark:text-violet-400 font-semibold group-hover:text-violet-500 transition-colors">Login as Seller</span>
                     </label>
                   </div>
-                  <button type="button" onClick={() => setStep("forgot")}
+                  <button type="button" onClick={() => navigate("/forgot-password")}
                     className="font-medium text-primary hover:underline focus:outline-none">
                     Forgot password?
                   </button>

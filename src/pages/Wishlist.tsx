@@ -9,8 +9,16 @@ export const Wishlist = () => {
   const { items, removeItem } = useWishlist()
   const { addItem } = useCart()
 
-  const handleAddToCart = (item: typeof items[0]) => {
+  const handleMoveToCart = (item: typeof items[0]) => {
     addItem({ id: item.id, title: item.title, author: item.author, price: item.price, coverUrl: item.coverUrl })
+    removeItem(item.id)
+  }
+
+  const handleMoveAllToCart = () => {
+    items.forEach(item => {
+      addItem({ id: item.id, title: item.title, author: item.author, price: item.price, coverUrl: item.coverUrl })
+      removeItem(item.id)
+    })
   }
 
   return (
@@ -74,10 +82,10 @@ export const Wishlist = () => {
                     <span className="text-xl font-bold text-foreground">${item.price.toFixed(2)}</span>
                     <Button
                       size="sm"
-                      onClick={() => handleAddToCart(item)}
+                      onClick={() => handleMoveToCart(item)}
                       className="gap-1.5"
                     >
-                      <ShoppingCart className="h-4 w-4" /> Add
+                      <ShoppingCart className="h-4 w-4" /> Move to Cart
                     </Button>
                   </div>
                 </div>
@@ -100,11 +108,11 @@ export const Wishlist = () => {
           </div>
           <Button
             variant="default"
-            onClick={() => items.forEach(handleAddToCart)}
+            onClick={handleMoveAllToCart}
             className="gap-2"
           >
             <ShoppingCart className="h-4 w-4" />
-            Add All to Cart
+            Move All to Cart
           </Button>
         </motion.div>
       )}

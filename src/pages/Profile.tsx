@@ -7,7 +7,12 @@ import { useAuth } from "../context/AuthContext"
 
 const ORDERS = [
   { id: "#BKV-9842", date: "Oct 12, 2023", total: 101.51, status: "Delivered", items: 2 },
-  { id: "#BKV-8211", date: "Sep 28, 2023", total: 45.00, status: "Processing", items: 1 },
+  { id: "#BKV-8211", date: "Sep 28, 2023", total: 45.00, status: "Shipped", items: 1 },
+]
+
+const REVIEWS = [
+  { id: 1, bookTitle: "The Art of Thinking Volume 4", rating: 5, comment: "Absolutely loved the concepts in this book. A must-read for anyone in design!", date: "Nov 5, 2023" },
+  { id: 2, bookTitle: "Programming Mastery Edition", rating: 4, comment: "Great insights, though some examples are a bit dated.", date: "Oct 20, 2023" },
 ]
 
 export const Profile = () => {
@@ -60,6 +65,7 @@ export const Profile = () => {
               {[
                 { id: "profile", label: "Profile Details", icon: User },
                 { id: "orders", label: "Order History", icon: Package },
+                { id: "reviews", label: "My Reviews", icon: Edit3 },
                 { id: "preferences", label: "Preferences", icon: Settings },
               ].map((tab) => (
                 <button 
@@ -169,25 +175,35 @@ export const Profile = () => {
                   
                   <div className="space-y-4">
                     {ORDERS.map((order) => (
-                      <div key={order.id} className="group bg-background/30 border border-border/60 rounded-2xl p-5 sm:p-6 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                      <div key={order.id} className="group bg-background/30 border border-border/60 rounded-2xl p-5 sm:p-6 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden">
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary transition-colors" />
                         <div className="flex flex-col sm:flex-row justify-between gap-4">
                           <div>
                             <div className="flex items-center gap-3 mb-1">
                               <span className="text-lg font-extrabold text-foreground tracking-tight">{order.id}</span>
                               <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                                order.status === 'Delivered' ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-amber-500/10 text-amber-500'
+                                order.status === 'Delivered' ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-blue-500/10 text-blue-500'
                               }`}>
                                 {order.status}
                               </span>
                             </div>
                             <div className="text-sm font-medium text-muted-foreground">{order.date} • {order.items} {order.items === 1 ? 'item' : 'items'}</div>
                           </div>
-                          <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-auto">
-                             <div className="text-left sm:text-right">
+                          <div className="flex items-center justify-between sm:justify-end gap-4 sm:w-auto">
+                             <div className="text-left sm:text-right mr-4">
                                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Total</div>
                                <div className="text-xl font-bold text-foreground">${order.total.toFixed(2)}</div>
                              </div>
+                             {order.status !== 'Delivered' && (
+                               <Button variant="outline" size="sm" className="rounded-xl" onClick={() => navigate("/order-tracking")}>
+                                 Track Order
+                               </Button>
+                             )}
+                             {order.status === 'Delivered' && (
+                               <Button variant="ghost" size="sm" className="rounded-xl text-primary hover:bg-primary/5">
+                                 Buy Again
+                               </Button>
+                             )}
                              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors shrink-0">
                                <ChevronRight className="h-5 w-5" />
                              </div>
@@ -197,6 +213,45 @@ export const Profile = () => {
                     ))}
                   </div>
                </motion.div>
+            )}
+
+            {activeTab === "reviews" && (
+              <motion.div 
+                key="reviews"
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className="bg-card/50 backdrop-blur-xl rounded-3xl border border-border/50 p-6 sm:p-10 shadow-sm relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+                <h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-2">My Reviews</h2>
+                <p className="text-muted-foreground mb-10 text-sm">Review all the feedback you've shared with the community.</p>
+
+                <div className="space-y-6">
+                  {REVIEWS.map((review) => (
+                    <div key={review.id} className="bg-background/40 border border-border p-6 rounded-2xl relative">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h4 className="font-bold text-foreground text-lg">{review.bookTitle}</h4>
+                          <div className="flex items-center gap-1 mt-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <div key={i} className={`h-4 w-4 rounded-full ${i < review.rating ? 'bg-primary' : 'bg-muted'}`} />
+                            ))}
+                            <span className="text-sm text-muted-foreground ml-2">{review.date}</span>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-muted-foreground leading-relaxed italic text-sm">
+                        "{review.comment}"
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             )}
 
             {activeTab === "preferences" && (

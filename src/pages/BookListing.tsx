@@ -6,7 +6,7 @@ import { Button } from "../components/ui/Button"
 import { Skeleton } from "../components/ui/Skeleton"
 import { useSearchParams } from "react-router-dom"
 
-import { CATEGORY_NAMES as CATEGORY_LIST, ALL_BOOKS } from "../data/books"
+import { CATEGORY_NAMES as CATEGORY_LIST, BOOKS } from "../data/books"
 
 export const BookListing = () => {
   const [searchParams] = useSearchParams()
@@ -20,6 +20,9 @@ export const BookListing = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(urlCategory ? [urlCategory] : [])
   const [sortBy, setSortBy] = useState("popular")
   const [isLoading, setIsLoading] = useState(true)
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100])
+  const [minRating, setMinRating] = useState(0)
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
 
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 28
@@ -53,12 +56,21 @@ export const BookListing = () => {
     setCurrentPage(1)
   }
 
-  const filteredBooks = ALL_BOOKS.filter(b => {
+  const filteredBooks = BOOKS.filter(b => {
     const matchesSearch = !debouncedSearch ||
       b.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       b.author.toLowerCase().includes(debouncedSearch.toLowerCase())
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(b.category)
-    return matchesSearch && matchesCategory
+    const matchesPrice = b.price >= priceRange[0] && b.price <= priceRange[1]
+    const matchesRating = b.rating >= minRating
+    const matchesLanguage = selectedLanguages.length === 0 || selectedLanguages.includes(b.language)
+    return matchesSearch && matchesCategory && matchesPrice && matchesRating && matchesLanguage
+  }).sort((a, b) => {
+    if (sortBy === "price_low") return a.price - b.price
+    if (sortBy === "price_high") return b.price - a.price
+    if (sortBy === "newest") return b.id.localeCompare(a.id) // Fallback since no date
+    if (sortBy === "rating") return b.rating - a.rating
+    return 0 // "popular" fallback
   })
 
   // Pagination Logic
@@ -109,6 +121,7 @@ export const BookListing = () => {
             >
               <option value="popular">Most Popular</option>
               <option value="newest">Newest Arrivals</option>
+              <option value="rating">Top Rated</option>
               <option value="price_low">Price: Low to High</option>
               <option value="price_high">Price: High to Low</option>
             </select>
@@ -178,22 +191,54 @@ export const BookListing = () => {
             <div>
               <h3 className="font-semibold mb-3 text-foreground">Price Range</h3>
               <div className="space-y-4">
-                <input type="range" min="0" max="100" className="w-full accent-primary" />
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={priceRange[1]}
+                  onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+                  className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary" 
+                />
                 <div className="flex items-center justify-between">
-                  <div className="border border-input rounded p-2 text-sm w-20 text-center bg-card">$0</div>
+                  <div className="border border-input rounded p-1.5 text-xs w-20 text-center bg-card shadow-sm font-bold text-foreground">${priceRange[0]}</div>
                   <span className="text-muted-foreground">-</span>
-                  <div className="border border-input rounded p-2 text-sm w-20 text-center bg-card">$100</div>
+                  <div className="border border-input rounded p-1.5 text-xs w-20 text-center bg-card shadow-sm font-bold text-foreground">${priceRange[1]}</div>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-3 text-foreground">Rating</h3>
+              <h3 className="font-semibold mb-3 text-foreground">Minimum Rating</h3>
               <div className="space-y-2">
-                {[4, 3, 2, 1].map(stars => (
+                {[4, 3, 2, 1, 0].map(stars => (
                   <label key={stars} className="flex items-center space-x-3 cursor-pointer group">
-                    <input type="radio" name="rating" className="rounded-full border-input text-primary focus:ring-primary h-4 w-4 transition-colors" />
-                    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{stars} Stars & Up</span>
+                    <input 
+                      type="radio" 
+                      name="rating" 
+                      checked={minRating === stars}
+                      onChange={() => setMinRating(stars)}
+                      className="rounded-full border-input text-primary focus:ring-primary h-4 w-4 transition-colors" 
+                    />
+                    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                      {stars === 0 ? "All Ratings" : `${stars} Stars & Up`}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-3 text-foreground">Language</h3>
+              <div className="space-y-2">
+                {["English", "Spanish"].map(lang => (
+                  <label key={lang} className="flex items-center space-x-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={selectedLanguages.includes(lang)}
+                      onChange={() => setSelectedLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang])}
+                      className="rounded border-input text-primary focus:ring-primary h-4 w-4 transition-colors"
+                    />
+                    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{lang}</span>
                   </label>
                 ))}
               </div>
@@ -268,41 +313,59 @@ export const BookListing = () => {
           )}
           
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-12 flex-wrap">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              
-              <div className="flex gap-1 overflow-x-auto max-w-full no-scrollbar pb-1">
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <Button 
-                    key={i}
-                    variant={currentPage === i + 1 ? "default" : "outline"}
-                    size="sm" 
-                    className="w-8 shrink-0"
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
-                  </Button>
-                ))}
-              </div>
+          {totalPages > 1 && (() => {
+            const getPaginationItems = (current: number, total: number) => {
+              if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+              if (current <= 3) return [1, 2, 3, 4, '...', total]
+              if (current >= total - 2) return [1, '...', total - 3, total - 2, total - 1, total]
+              return [1, '...', current - 1, current, current + 1, '...', total]
+            }
+            const paginationItems = getPaginationItems(currentPage, totalPages)
 
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
+            return (
+              <div className="flex items-center justify-center gap-2 mt-12 flex-wrap">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-full px-4"
+                >
+                  Previous
+                </Button>
+                
+                <div className="flex flex-wrap justify-center items-center gap-1 p-2">
+                  {paginationItems.map((item, i) => (
+                    item === '...' ? (
+                      <span key={i} className="flex items-center justify-center w-8 h-8 text-muted-foreground font-bold shrink-0">
+                        ...
+                      </span>
+                    ) : (
+                      <Button 
+                        key={i}
+                        variant={currentPage === item ? "default" : "outline"}
+                        size="sm" 
+                        className={`w-8 h-8 rounded-full shrink-0 ${currentPage === item ? 'shadow-lg shadow-primary/20 scale-105' : ''}`}
+                        onClick={() => setCurrentPage(item as number)}
+                      >
+                        {item}
+                      </Button>
+                    )
+                  ))}
+                </div>
+
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-full px-4"
+                >
+                  Next
+                </Button>
+              </div>
+            )
+          })()}
         </div>
       </div>
     </div>

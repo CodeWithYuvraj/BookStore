@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { ArrowRight, Star, BookOpen, Users, Award, TrendingUp, Sparkles, ChevronRight } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { BookCard } from "../components/ui/BookCard"
+import { Button } from "../components/ui/Button"
 
 const FEATURED_BOOKS = [
   { id: "1", title: "The Design of Everyday Things", author: "Don Norman", price: 24.99, rating: 4.8, category: "Design", coverUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400" },
@@ -161,12 +162,17 @@ export const Home = () => {
               </div>
             </motion.div>
 
+            <style>{`
+              .hero-book-container { --tx-scale: 0.6; }
+              @media (min-width: 640px) { .hero-book-container { --tx-scale: 1; } }
+            `}</style>
+
             {/* Right: floating books */}
             <motion.div
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="relative hidden lg:flex items-center justify-center h-[520px]"
+              className="relative flex order-first lg:order-last items-center justify-center h-[340px] lg:h-[520px] w-full mt-4 mb-4 lg:mb-0 hero-book-container"
             >
               {/* Big glow behind books */}
               <div className="absolute inset-0 flex items-center justify-center">
@@ -192,11 +198,13 @@ export const Home = () => {
                   whileHover={{ scale: 1.08, zIndex: 10 }}
                 >
                   <div
-                    className="rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+                    className={`rounded-2xl overflow-hidden shadow-2xl border border-white/10 ${
+                      i === 1 
+                        ? 'w-[120px] h-[170px] sm:w-[180px] sm:h-[260px]' 
+                        : 'w-[90px] h-[130px] sm:w-[140px] sm:h-[200px]'
+                    }`}
                     style={{
-                      transform: `rotate(${book.rotate}deg) translateX(${book.x}px)`,
-                      width: i === 1 ? 180 : 140,
-                      height: i === 1 ? 260 : 200,
+                      transform: `rotate(${book.rotate}deg) translateX(calc(${book.x}px * var(--tx-scale)))`,
                       boxShadow: "0 30px 60px rgba(0,0,0,0.4), 0 0 40px rgba(139,92,246,0.15)",
                     }}
                   >
@@ -241,6 +249,38 @@ export const Home = () => {
           <Link to="/books" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
             View all books <ChevronRight className="h-4 w-4" />
           </Link>
+        </div>
+      </section>
+
+      {/* ── PERSONALIZED RECOMMENDATIONS ── */}
+      <section className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8 py-16">
+        <div className="bg-primary/5 rounded-[48px] p-8 sm:p-12 border border-primary/10 relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+           
+           <div className="flex flex-col lg:flex-row items-end justify-between gap-8 mb-12">
+             <div className="max-w-xl">
+               <div className="flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-4">
+                 <Sparkles className="h-5 w-5 fill-primary/20" /> Picked for You
+               </div>
+               <h2 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight leading-tight">
+                 Based on your <span className="text-primary italic">reading style</span>
+               </h2>
+             </div>
+             <Button variant="outline" className="rounded-full px-8 shadow-sm">Refine Preferences</Button>
+           </div>
+
+           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 relative z-10">
+              {FEATURED_BOOKS.slice(1, 5).map((book, i) => (
+                <motion.div 
+                  key={`rec-${book.id}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <BookCard {...book} />
+                </motion.div>
+              ))}
+           </div>
         </div>
       </section>
 

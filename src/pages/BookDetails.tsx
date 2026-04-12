@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion"
-import { Star, ShoppingCart, Heart, Share2, ArrowLeft, Truck, ShieldCheck, BookOpen, RotateCcw, UploadCloud, X } from "lucide-react"
+import { Star, ShoppingCart, Heart, Share2, ArrowLeft, Truck, ShieldCheck, BookOpen, RotateCcw, UploadCloud, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "../components/ui/Button"
 import { BookCard } from "../components/ui/BookCard"
 import { useCart } from "../context/CartContext"
@@ -7,38 +7,23 @@ import { useWishlist } from "../context/WishlistContext"
 import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
 
-// Shared book data — same as BookListing so clicking a card works
-const BOOK_COVERS = [
-  "1544947950-fa07a98d237f", "1512820790803-83ca734da794", "1589829085413-56de8ae18c73",
-  "1481627834876-b7833e8f5570", "1495446815901-a7297e633e8d", "1524578271613-d550eacf6090", "1457369804613-52c61a468e7d"
-]
+import { BOOKS } from "../data/books"
 
-const ALL_BOOKS = Array.from({ length: 24 }).map((_, i) => ({
-  id: `book-${i}`,
-  title: `The Art of ${["Programming", "Design", "Writing", "Thinking", "Leadership", "Creative Coding"][i % 6]}`,
-  author: ["Don Norman", "Robert C. Martin", "Martin Fowler", "Kent Beck", "Linus Torvalds"][i % 5],
-  price: 15 + (i * 2.5),
-  rating: parseFloat((4 + Math.random()).toPrecision(2)),
-  category: i % 3 === 0 ? "Fiction" : i % 2 === 0 ? "Design" : "Programming",
-  coverUrl: `https://images.unsplash.com/photo-${BOOK_COVERS[i % BOOK_COVERS.length]}?auto=format&fit=crop&q=80&w=600`,
-  pages: 200 + (i * 15),
-  publisher: ["Penguin", "O'Reilly", "HarperCollins", "Basic Books"][i % 4],
-  language: "English",
-  publicationDate: `${["Jan", "Mar", "Jun", "Sep"][i % 4]} ${2018 + (i % 5)}, ${i % 4 + 1}`,
-  description: "An indispensable guide for anyone wanting to understand the deeper principles at work — whether you are just starting your journey or refining your craft after years of experience. This book will fundamentally change the way you see and approach your work.",
-}))
+
 type Review = {
   id: string
   name: string
   rating: number
   text: string
   date: string
+  isVerified: boolean
+  helpfulVotes: number
   imageUrl?: string | null
 }
 
 const INITIAL_REVIEWS: Review[] = [
-  { id: "r1", name: "Alice M.", rating: 5, text: "Absolutely brilliant! Changed the way I approach my work.", date: "2 days ago" },
-  { id: "r2", name: "John D.", rating: 4, text: "Great read, well-structured and highly informative. Wish the cover was hardback.", date: "1 week ago" }
+  { id: "r1", name: "Alice M.", rating: 5, text: "Absolutely brilliant! Changed the way I approach my work.", date: "2 days ago", isVerified: true, helpfulVotes: 12 },
+  { id: "r2", name: "John D.", rating: 4, text: "Great read, well-structured and highly informative. Wish the cover was hardback.", date: "1 week ago", isVerified: true, helpfulVotes: 5 }
 ]
 
 export const BookDetails = () => {
@@ -53,13 +38,15 @@ export const BookDetails = () => {
   const [isHoveringRating, setIsHoveringRating] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [showReader, setShowReader] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   const { addItem } = useCart()
   const { toggleItem, isWishlisted } = useWishlist()
 
-  const book = ALL_BOOKS.find(b => b.id === id) ?? ALL_BOOKS[0]
+  const book = BOOKS.find(b => b.id === id) ?? BOOKS[0]
   const wishlisted = isWishlisted(book.id)
-  const related = ALL_BOOKS.filter(b => b.category === book.category && b.id !== book.id).slice(0, 5)
+  const related = BOOKS.filter(b => b.category === book.category && b.id !== book.id).slice(0, 5)
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -101,7 +88,9 @@ export const BookDetails = () => {
       rating: newReviewRating,
       text: newReviewText,
       date: "Just now",
-      imageUrl: previewImage
+      imageUrl: previewImage,
+      isVerified: false,
+      helpfulVotes: 0,
     }
     
     setReviews([review, ...reviews])
@@ -133,11 +122,59 @@ export const BookDetails = () => {
         >
           <motion.div
             whileHover={{ scale: 1.02, rotateY: 3 }}
-            className="bg-muted rounded-2xl aspect-[2/3] overflow-hidden shadow-xl border border-border"
+            className="relative bg-muted rounded-2xl aspect-[2/3] overflow-hidden shadow-xl border border-border group"
             style={{ perspective: 1000 }}
           >
-            <img src={book.coverUrl} alt={book.title} className="w-full h-full object-cover" />
+            <AnimatePresence initial={false} mode="wait">
+              <motion.img
+                key={currentImageIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                src={book.images ? book.images[currentImageIndex] : book.coverUrl}
+                alt={book.title}
+                className="w-full h-full object-cover absolute inset-0"
+              />
+            </AnimatePresence>
+            
+            {book.images && book.images.length > 1 && (
+              <>
+                <div className="absolute inset-x-0 bottom-4 flex justify-center gap-2 z-10 custom-carousel-nav transition-opacity opacity-0 group-hover:opacity-100">
+                  {book.images.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(i); }}
+                      className={`w-2 h-2 rounded-full transition-all ${i === currentImageIndex ? 'bg-primary w-4' : 'bg-primary/30 hover:bg-primary/60'}`}
+                    />
+                  ))}
+                </div>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setCurrentImageIndex((prev) => (prev - 1 + book.images!.length) % book.images!.length); }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background shadow-md border border-border text-foreground z-10"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setCurrentImageIndex((prev) => (prev + 1) % book.images!.length); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background shadow-md border border-border text-foreground z-10"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            )}
+            {/* Fallback space when images loading */}
+            <div className="w-full h-full" />
           </motion.div>
+          
+          <Button 
+            variant="outline" 
+            onClick={() => setShowReader(true)}
+            className="w-full h-12 rounded-xl border-dashed border-2 hover:border-primary hover:bg-primary/5 gap-2 group"
+          >
+            <BookOpen className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
+            Read Sample Chapter
+          </Button>
         </motion.div>
 
         {/* Details */}
@@ -253,10 +290,9 @@ export const BookDetails = () => {
                     onChange={(e) => setNewReviewText(e.target.value)}
                     placeholder="What did you think about this book?"
                     className="w-full min-h-[100px] p-3 rounded-xl border border-input bg-transparent focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-y text-sm text-foreground transition-all"
-                    required
                   />
 
-                  <Button type="submit" className="w-full sm:w-auto h-10 px-8 disabled:opacity-50" disabled={!newReviewText.trim()}>
+                  <Button type="submit" className="w-full sm:w-auto h-10 px-8 disabled:opacity-50 hover:scale-105 active:scale-95 transition-all" disabled={!newReviewText.trim()}>
                     Post Review
                   </Button>
                 </form>
@@ -279,22 +315,37 @@ export const BookDetails = () => {
                               {r.name.charAt(0)}
                             </div>
                             <div>
-                              <span className="font-semibold text-sm text-foreground block">{r.name}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-sm text-foreground block">{r.name}</span>
+                                {r.isVerified && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/10 text-[10px] font-bold text-green-600 uppercase tracking-tighter">
+                                    <ShieldCheck className="h-3 w-3" /> Verified
+                                  </span>
+                                )}
+                              </div>
                               <span className="text-xs text-muted-foreground">{r.date}</span>
                             </div>
                           </div>
                           <div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < r.rating ? "fill-yellow-400 text-yellow-400" : "text-muted"}`} />)}</div>
                         </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{r.text}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">{r.text}</p>
                         {r.imageUrl && (
                           <motion.img 
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             src={r.imageUrl} 
                             alt="Review attachment" 
-                            className="mt-4 h-32 w-auto object-cover rounded-lg border border-border shadow-sm group-hover:shadow-md transition-all" 
+                            className="mb-4 h-32 w-auto object-cover rounded-lg border border-border shadow-sm group-hover:shadow-md transition-all" 
                           />
                         )}
+                        <div className="flex items-center gap-4 border-t border-border/50 pt-3">
+                           <button className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-1.5">
+                             Helpful ({r.helpfulVotes})
+                           </button>
+                           <button className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors">
+                             Report
+                           </button>
+                        </div>
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -374,7 +425,7 @@ export const BookDetails = () => {
         <div className="mt-20">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold tracking-tight flex items-center text-foreground">
-              <BookOpen className="mr-3 h-6 w-6 text-primary" /> You Might Also Like
+              <BookOpen className="mr-3 h-6 w-6 text-primary" /> Customers Also Bought
             </h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
@@ -382,6 +433,90 @@ export const BookDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Cinematic Reader Modal */}
+      <AnimatePresence>
+        {showReader && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+          >
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowReader(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-md"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-4xl bg-card border border-border shadow-2xl rounded-[32px] overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              {/* Reader Header */}
+              <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-14 rounded shadow-md overflow-hidden shrink-0">
+                    <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground leading-tight">{book.title}</h3>
+                    <p className="text-xs text-muted-foreground">Sample Chapter: The Architecture of Choice</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowReader(false)}
+                  className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-border transition-all"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Reader Body */}
+              <div className="flex-1 overflow-y-auto p-8 sm:p-12 font-serif leading-relaxed text-lg text-foreground/90 selection:bg-primary/20">
+                <div className="max-w-2xl mx-auto space-y-8">
+                  <div className="text-center mb-12">
+                    <span className="text-primary font-bold tracking-[0.3em] uppercase text-xs">Chapter One</span>
+                    <h2 className="text-3xl font-bold mt-2">The Hidden Patterns</h2>
+                  </div>
+                  
+                  <p className="first-letter:text-6xl first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-primary">
+                    It began with a simple observation. In the world of design, most people look at the surface. They see the colors, the typography, the whitespace. But beneath the surface lies a complex web of neural pathways and psychological triggers that dictate how we perceive value.
+                  </p>
+
+                  <p>
+                    Choice architecture is the practice of influencing choice by changing the context in which people make decisions. For example, by changing which items are displayed most prominently or through the use of default options. When done effectively, it creates a seamless path from desire to action.
+                  </p>
+
+                  <div className="py-8 my-8 border-y border-border/50 italic text-muted-foreground text-center px-6">
+                    "The best interface is one that feels like an extension of the mind, not a barrier to it."
+                  </div>
+
+                  <p>
+                    As we delve deeper into this study, we find that the most successful products don't just solve problems—they anticipate them. They create a dialogue with the user that is so intuitive it requires no conscious thought. This is the art of invisible design.
+                  </p>
+
+                  <p>
+                    Consider the way a physical book feels in your hands. The weight, the texture of the paper, the smell of the ink. These are not secondary characteristics; they are core to the experience of reading. In the digital realm, we must find equivalents for these sensory inputs to create a truly immersive experience.
+                  </p>
+
+                  <div className="h-64 bg-gradient-to-t from-card to-transparent border-t border-dashed border-border flex items-center justify-center text-center p-8 mt-12 rounded-b-3xl">
+                    <div className="space-y-4">
+                      <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">End of Sample</p>
+                      <h4 className="text-xl font-bold text-foreground">Enjoyed the preview?</h4>
+                      <Button onClick={() => { setShowReader(false); handleAddToCart(); }} className="rounded-full px-8">Buy Full Book Now</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

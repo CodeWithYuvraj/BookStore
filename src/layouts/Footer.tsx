@@ -31,10 +31,12 @@ export const Footer = () => {
           </div>
 
           {/* Quick links */}
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <Link to="/books" className="hover:text-foreground transition-colors">Books</Link>
             <Link to="/categories" className="hover:text-foreground transition-colors">Categories</Link>
-            <Link to="/wishlist" className="hover:text-foreground transition-colors">Wishlist</Link>
+            <Link to="/about" className="hover:text-foreground transition-colors">About Us</Link>
+            <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+            <Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link>
           </div>
 
           {/* Subscribe */}
@@ -76,8 +78,8 @@ export const Footer = () => {
         <div className="mt-4 border-t border-border pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>© {new Date().getFullYear()} BookVerse. All rights reserved.</span>
           <div className="flex gap-4">
-            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>

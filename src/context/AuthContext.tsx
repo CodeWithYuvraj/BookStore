@@ -2,14 +2,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 interface User {
   email: string;
-  role: "user" | "seller";
+  role: "user" | "seller" | "admin";
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, role?: "user" | "seller") => void;
+  login: (email: string, role?: "user" | "seller" | "admin") => void;
   logout: () => void;
-  updateRole: (role: "seller") => void;
+  updateRole: (role: "seller" | "admin") => void;
   isLoading: boolean;
 }
 
@@ -22,14 +22,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Check local storage on initial load
     const storedEmail = localStorage.getItem("user_email");
-    const storedRole = localStorage.getItem("user_role") as "user" | "seller" || "user";
+    const storedRole = localStorage.getItem("user_role") as "user" | "seller" | "admin" || "user";
     if (storedEmail) {
       setUser({ email: storedEmail, role: storedRole });
     }
     setIsLoading(false);
   }, []);
 
-  const login = (email: string, role: "user" | "seller" = "user") => {
+  const login = (email: string, role: "user" | "seller" | "admin" = "user") => {
     localStorage.setItem("user_email", email);
     localStorage.setItem("user_role", role);
     // Setting password for completion per user requirements (mock check)
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
-  const updateRole = (role: "seller") => {
+  const updateRole = (role: "seller" | "admin") => {
     if (user) {
       localStorage.setItem("user_role", role);
       setUser({ ...user, role });

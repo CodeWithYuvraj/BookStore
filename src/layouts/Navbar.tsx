@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Menu, X, ShoppingCart, Heart, User, Search, Moon, Sun, LogOut, Store } from "lucide-react"
+import { Menu, X, ShoppingCart, Heart, User, Search, Moon, Sun, LogOut, Store, Shield } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTheme } from "../components/theme-provider"
 import { useCart } from "../context/CartContext"
 import { useAuth } from "../context/AuthContext"
+import { BOOKS } from "../data/books"
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -22,6 +23,7 @@ export const Navbar = () => {
     { name: "Home", path: "/" },
     { name: "Books", path: "/books" },
     { name: "Categories", path: "/categories" },
+    { name: "Deals", path: "/deals" },
   ]
 
   useEffect(() => {
@@ -112,6 +114,41 @@ export const Navbar = () => {
                       placeholder="Search books, authors..."
                       className="w-full rounded-full border border-primary/40 bg-card/90 backdrop-blur-sm py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
                     />
+                    
+                    {/* Autocomplete Dropdown */}
+                    <AnimatePresence>
+                      {searchQuery.length > 1 && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50 flex flex-col"
+                        >
+                          {BOOKS.filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase()) || b.author.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 4).length > 0 ? (
+                            BOOKS.filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase()) || b.author.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 4).map(book => (
+                              <button 
+                                type="button"
+                                key={book.id} 
+                                onClick={() => {
+                                  navigate(`/books/${book.id}`);
+                                  setIsSearchOpen(false);
+                                  setSearchQuery("");
+                                }}
+                                className="flex items-center gap-3 p-3 hover:bg-muted transition-colors text-left border-b border-border/50 last:border-0"
+                              >
+                                <img src={book.coverUrl} alt={book.title} className="w-8 h-10 object-cover rounded shadow-sm" />
+                                <div>
+                                  <div className="text-xs font-bold text-foreground line-clamp-1">{book.title}</div>
+                                  <div className="text-[10px] text-muted-foreground">{book.author}</div>
+                                </div>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="p-4 text-xs text-center text-muted-foreground">No books found matching "{searchQuery}"</div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                   <motion.button
                     type="button"
@@ -202,6 +239,15 @@ export const Navbar = () => {
                       >
                         <User className="mr-2 h-4 w-4" /> Profile
                       </Link>
+                      {user.role === "admin" && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        >
+                          <Shield className="mr-2 h-4 w-4" /> Admin Dashboard
+                        </Link>
+                      )}
                       {user.role === "seller" ? (
                         <Link
                           to="/seller-dashboard"
@@ -210,7 +256,7 @@ export const Navbar = () => {
                         >
                           <Store className="mr-2 h-4 w-4" /> Seller Dashboard
                         </Link>
-                      ) : (
+                      ) : user.role !== "admin" && (
                         <Link
                           to="/become-seller"
                           onClick={() => setProfileOpen(false)}
