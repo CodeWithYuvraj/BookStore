@@ -25,8 +25,19 @@ const TITLE_SUFFIXES = [
   "Creative Coding", "Science", "History", "Music", "War", "Finance", "Nature"
 ];
 
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  price: number;
+  rating: number;
+  category: string;
+  coverUrl: string;
+  language: string;
+}
+
 const generateBooks = () => {
-  const books = [];
+  const books: Book[] = [];
   // Generate 26 books for each category so they exceed the 28 display limit, 
   // ensuring pagination is active for EVERY single category
   CATEGORY_NAMES.forEach((category, catIdx) => {
