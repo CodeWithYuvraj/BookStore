@@ -3,14 +3,27 @@ import { KeyRound, Mail, ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-rea
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "../components/ui/Button"
+import { useToast } from "../context/ToastContext"
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(false)
+  const { addToast } = useToast()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Basic email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email || !emailRegex.test(email)) {
+      setError(true)
+      addToast("Please enter a valid email address.", "error")
+      return
+    }
+
+    setError(false)
     setIsLoading(true)
     // Simulate API call
     setTimeout(() => {
@@ -37,18 +50,24 @@ export const ForgotPassword = () => {
 
         <div className="bg-card border border-border rounded-3xl p-8 shadow-xl shadow-primary/5">
            {!isSubmitted ? (
-             <form onSubmit={handleSubmit} className="space-y-6">
+             <form onSubmit={handleSubmit} noValidate className="space-y-6">
                 <div className="space-y-2">
                    <label className="text-sm font-bold text-foreground">Email Address</label>
                    <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <input 
                         type="email" 
-                        required
                         placeholder="jane@example.com"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full h-12 bg-background border border-input rounded-xl pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        onChange={(e) => {
+                          setEmail(e.target.value)
+                          if (error) setError(false)
+                        }}
+                        className={`w-full h-12 bg-background border rounded-xl pl-10 pr-4 text-sm focus:outline-none focus:ring-2 transition-all ${
+                          error 
+                            ? "border-red-500 focus:ring-red-500/20" 
+                            : "border-input focus:ring-primary/20"
+                        }`}
                       />
                    </div>
                 </div>

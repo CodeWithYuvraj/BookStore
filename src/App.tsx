@@ -67,7 +67,7 @@ const wrap = (el: React.ReactNode) => <Suspense fallback={<PageLoader />}>{el}</
 
 function App() {
   const location = useLocation()
-  const isStandalonePage = location.pathname === "/auth" || location.pathname === "/404"
+  const isStandalonePage = location.pathname === "/auth" || location.pathname === "/404" || location.pathname === "/forgot-password"
   const [showSplash, setShowSplash] = useState(true)
   const handleSplashDone = useCallback(() => setShowSplash(false), [])
 
