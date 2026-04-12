@@ -18,6 +18,7 @@ export const Auth = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [isSellerLogin, setIsSellerLogin] = useState(false)
   const [forgotEmail, setForgotEmail] = useState("")
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -39,8 +40,8 @@ export const Auth = () => {
     if (isEmailWrong && isPasswordWrong) { addToast("Both Email and Password are wrong", "error"); return }
     if (isEmailWrong) { addToast("Email is wrong", "error"); return }
     if (isPasswordWrong) { addToast("Password is wrong", "error"); return }
-    contextLogin(email)
-    addToast("Welcome back!", "success")
+    contextLogin(email, isSellerLogin ? "seller" : "user")
+    addToast(isSellerLogin ? "Welcome back, Merchant!" : "Welcome back!", "success")
     navigate("/")
   }
 
@@ -166,10 +167,16 @@ export const Auth = () => {
                   </div>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center cursor-pointer group">
-                    <input type="checkbox" className="rounded border-input bg-background text-primary focus:ring-primary mr-2" />
-                    <span className="text-muted-foreground group-hover:text-foreground transition-colors">Remember me</span>
-                  </label>
+                  <div className="flex flex-col gap-2">
+                    <label className="flex items-center cursor-pointer group">
+                      <input type="checkbox" className="rounded border-input bg-background text-primary focus:ring-primary mr-2" />
+                      <span className="text-muted-foreground group-hover:text-foreground transition-colors">Remember me</span>
+                    </label>
+                    <label className="flex items-center cursor-pointer group">
+                      <input type="checkbox" checked={isSellerLogin} onChange={e => setIsSellerLogin(e.target.checked)} className="rounded border-input bg-background text-violet-500 focus:ring-violet-500 mr-2" />
+                      <span className="text-violet-600 dark:text-violet-400 font-semibold group-hover:text-violet-500 transition-colors">Login as Seller</span>
+                    </label>
+                  </div>
                   <button type="button" onClick={() => setStep("forgot")}
                     className="font-medium text-primary hover:underline focus:outline-none">
                     Forgot password?

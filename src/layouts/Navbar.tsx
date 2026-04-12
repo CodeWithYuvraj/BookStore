@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Menu, X, ShoppingCart, Heart, User, Search, Moon, Sun, LogOut } from "lucide-react"
+import { Menu, X, ShoppingCart, Heart, User, Search, Moon, Sun, LogOut, Store } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTheme } from "../components/theme-provider"
 import { useCart } from "../context/CartContext"
@@ -202,6 +202,23 @@ export const Navbar = () => {
                       >
                         <User className="mr-2 h-4 w-4" /> Profile
                       </Link>
+                      {user.role === "seller" ? (
+                        <Link
+                          to="/seller-dashboard"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm font-semibold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20"
+                        >
+                          <Store className="mr-2 h-4 w-4" /> Seller Dashboard
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/become-seller"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                        >
+                          <Store className="mr-2 h-4 w-4" /> Become a Seller
+                        </Link>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center px-4 py-2 text-sm text-destructive hover:bg-destructive/10"

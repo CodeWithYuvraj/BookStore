@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion"
-import { Star, ShoppingCart, Heart, Share2, ArrowLeft, Truck, ShieldCheck, BookOpen, RotateCcw } from "lucide-react"
+import { Star, ShoppingCart, Heart, Share2, ArrowLeft, Truck, ShieldCheck, BookOpen, RotateCcw, UploadCloud, X } from "lucide-react"
 import { Button } from "../components/ui/Button"
 import { BookCard } from "../components/ui/BookCard"
 import { useCart } from "../context/CartContext"
@@ -27,11 +27,33 @@ const ALL_BOOKS = Array.from({ length: 24 }).map((_, i) => ({
   publicationDate: `${["Jan", "Mar", "Jun", "Sep"][i % 4]} ${2018 + (i % 5)}, ${i % 4 + 1}`,
   description: "An indispensable guide for anyone wanting to understand the deeper principles at work — whether you are just starting your journey or refining your craft after years of experience. This book will fundamentally change the way you see and approach your work.",
 }))
+type Review = {
+  id: string
+  name: string
+  rating: number
+  text: string
+  date: string
+  imageUrl?: string | null
+}
+
+const INITIAL_REVIEWS: Review[] = [
+  { id: "r1", name: "Alice M.", rating: 5, text: "Absolutely brilliant! Changed the way I approach my work.", date: "2 days ago" },
+  { id: "r2", name: "John D.", rating: 4, text: "Great read, well-structured and highly informative. Wish the cover was hardback.", date: "1 week ago" }
+]
 
 export const BookDetails = () => {
   const { id } = useParams()
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState<"overview" | "details" | "reviews">("overview")
+  
+  // Review System State
+  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS)
+  const [newReviewText, setNewReviewText] = useState("")
+  const [newReviewRating, setNewReviewRating] = useState(5)
+  const [isHoveringRating, setIsHoveringRating] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+
   const { addItem } = useCart()
   const { toggleItem, isWishlisted } = useWishlist()
 
@@ -47,6 +69,45 @@ export const BookDetails = () => {
 
   const handleWishlist = () => {
     toggleItem({ id: book.id, title: book.title, author: book.author, price: book.price, coverUrl: book.coverUrl, category: book.category, rating: book.rating })
+  }
+
+  // File Drag & Drop Handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0]
+      if (file.type.startsWith("image/")) {
+        setPreviewImage(URL.createObjectURL(file))
+      }
+    }
+  }
+
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newReviewText.trim()) return
+
+    const review: Review = {
+      id: Date.now().toString(),
+      name: "Guest User",
+      rating: newReviewRating,
+      text: newReviewText,
+      date: "Just now",
+      imageUrl: previewImage
+    }
+    
+    setReviews([review, ...reviews])
+    setNewReviewText("")
+    setNewReviewRating(5)
+    setPreviewImage(null)
   }
 
   return (
@@ -135,16 +196,109 @@ export const BookDetails = () => {
               </motion.div>
             )}
             {activeTab === "reviews" && (
-              <motion.div key="reviews" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                {[{ name: "Alice M.", rating: 5, text: "Absolutely brilliant! Changed the way I approach my work." }, { name: "John D.", rating: 4, text: "Great read, well-structured and highly informative." }].map(r => (
-                  <div key={r.name} className="p-4 bg-muted/50 rounded-xl border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-sm text-foreground">{r.name}</span>
-                      <div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-yellow-400 text-yellow-400" : "text-muted"}`} />)}</div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{r.text}</p>
+              <motion.div key="reviews" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+                
+                {/* Write Review Form */}
+                <form onSubmit={handleSubmitReview} className="p-5 bg-card border border-border shadow-sm rounded-2xl space-y-4">
+                  <h3 className="font-semibold text-foreground text-lg">Write a Review</h3>
+                  
+                  {/* Interactive Star Rating */}
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star 
+                        key={star}
+                        onMouseEnter={() => setIsHoveringRating(star)}
+                        onMouseLeave={() => setIsHoveringRating(0)}
+                        onClick={() => setNewReviewRating(star)}
+                        className={`h-6 w-6 cursor-pointer transition-colors ${star <= (isHoveringRating || newReviewRating) ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`} 
+                      />
+                    ))}
                   </div>
-                ))}
+
+                  {/* Drag & Drop Image Zone */}
+                  {previewImage ? (
+                    <div className="relative w-max">
+                      <img src={previewImage} alt="Preview" className="h-24 w-24 object-cover rounded-xl border border-border" />
+                      <button type="button" onClick={() => setPreviewImage(null)} className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 shadow-md hover:scale-110 transition-transform">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-colors duration-200 ${isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 bg-muted/20"}`}
+                    >
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setPreviewImage(URL.createObjectURL(e.target.files[0]))
+                          }
+                        }}
+                      />
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground pointer-events-none">
+                        <UploadCloud className={`h-8 w-8 ${isDragging ? "text-primary transition-transform scale-110" : ""}`} />
+                        <p className="text-sm"><span className="font-semibold text-primary">Click to upload</span> or drag and drop</p>
+                        <p className="text-xs">SVG, PNG, JPG or WEBP (max. 800x400px)</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <textarea 
+                    value={newReviewText}
+                    onChange={(e) => setNewReviewText(e.target.value)}
+                    placeholder="What did you think about this book?"
+                    className="w-full min-h-[100px] p-3 rounded-xl border border-input bg-transparent focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-y text-sm text-foreground transition-all"
+                    required
+                  />
+
+                  <Button type="submit" className="w-full sm:w-auto h-10 px-8 disabled:opacity-50" disabled={!newReviewText.trim()}>
+                    Post Review
+                  </Button>
+                </form>
+
+                {/* Reviews List */}
+                <div className="space-y-4">
+                  <AnimatePresence mode="popLayout">
+                    {reviews.map((r, i) => (
+                      <motion.div 
+                        layout
+                        key={r.id} 
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.4, delay: i * 0.05 }}
+                        className="p-5 bg-card/50 rounded-2xl border border-border/50 hover:border-border transition-colors group"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                              {r.name.charAt(0)}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-sm text-foreground block">{r.name}</span>
+                              <span className="text-xs text-muted-foreground">{r.date}</span>
+                            </div>
+                          </div>
+                          <div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < r.rating ? "fill-yellow-400 text-yellow-400" : "text-muted"}`} />)}</div>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{r.text}</p>
+                        {r.imageUrl && (
+                          <motion.img 
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            src={r.imageUrl} 
+                            alt="Review attachment" 
+                            className="mt-4 h-32 w-auto object-cover rounded-lg border border-border shadow-sm group-hover:shadow-md transition-all" 
+                          />
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

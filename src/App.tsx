@@ -16,6 +16,8 @@ const Wishlist = lazy(() => import("./pages/Wishlist").then(m => ({ default: m.W
 const Profile = lazy(() => import("./pages/Profile").then(m => ({ default: m.Profile })))
 const Auth = lazy(() => import("./pages/Auth").then(m => ({ default: m.Auth })))
 const Categories = lazy(() => import("./pages/Categories").then(m => ({ default: m.Categories })))
+const BecomeSeller = lazy(() => import("./pages/BecomeSeller").then(m => ({ default: m.BecomeSeller })))
+const SellerDashboard = lazy(() => import("./pages/SellerDashboard").then(m => ({ default: m.SellerDashboard })))
 
 const isAuthenticated = () => {
   const email = localStorage.getItem("user_email")
@@ -23,8 +25,15 @@ const isAuthenticated = () => {
   return !!(email && password)
 }
 
+const isSeller = () => {
+  return localStorage.getItem("user_role") === "seller"
+}
+
 const PrivateRoute = ({ children }: { children: React.ReactNode }) =>
   isAuthenticated() ? <>{children}</> : <Navigate to="/auth" replace />
+
+const SellerRoute = ({ children }: { children: React.ReactNode }) =>
+  isAuthenticated() && isSeller() ? <>{children}</> : <Navigate to="/become-seller" replace />
 
 const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) =>
   isAuthenticated() ? <Navigate to="/" replace /> : <>{children}</>
@@ -80,6 +89,11 @@ function App() {
                 <Route path="/wishlist" element={<PrivateRoute>{wrap(<Wishlist />)}</PrivateRoute>} />
                 <Route path="/profile" element={<PrivateRoute>{wrap(<Profile />)}</PrivateRoute>} />
                 <Route path="/categories" element={<PrivateRoute>{wrap(<Categories />)}</PrivateRoute>} />
+                
+                {/* Seller Routes */}
+                <Route path="/become-seller" element={<PrivateRoute>{wrap(<BecomeSeller />)}</PrivateRoute>} />
+                <Route path="/seller-dashboard" element={<SellerRoute>{wrap(<SellerDashboard />)}</SellerRoute>} />
+
                 <Route path="/auth" element={<PublicOnlyRoute>{wrap(<Auth />)}</PublicOnlyRoute>} />
               </Routes>
             </motion.div>
