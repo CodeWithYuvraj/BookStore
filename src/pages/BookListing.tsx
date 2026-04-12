@@ -46,6 +46,11 @@ export const BookListing = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 28
 
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentPage])
+
   // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -303,10 +308,7 @@ export const BookListing = () => {
                     variant={currentPage === i + 1 ? "default" : "outline"}
                     size="sm" 
                     className="w-8 shrink-0"
-                    onClick={() => {
-                      setCurrentPage(i + 1)
-                      window.scrollTo({ top: 0, behavior: 'smooth' })
-                    }}
+                    onClick={() => setCurrentPage(i + 1)}
                   >
                     {i + 1}
                   </Button>
