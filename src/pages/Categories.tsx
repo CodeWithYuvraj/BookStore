@@ -2,28 +2,29 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { Search, X, BookOpen, Palette, Code2, FlaskConical, Globe, Music, Film, Heart, Star, Cpu, Leaf, Coins, Brain, Brush, Mountain, Telescope, ScrollText, Swords, Baby } from "lucide-react"
+import { getBookCountByCategory } from "../data/books"
 
 const CATEGORIES = [
-  { name: "Fiction", icon: BookOpen, count: 284, gradient: "from-violet-500/20 to-purple-500/10", iconColor: "text-violet-500", border: "border-violet-500/20" },
-  { name: "Design & Art", icon: Palette, count: 142, gradient: "from-pink-500/20 to-rose-500/10", iconColor: "text-pink-500", border: "border-pink-500/20" },
-  { name: "Programming", icon: Code2, count: 318, gradient: "from-blue-500/20 to-cyan-500/10", iconColor: "text-blue-500", border: "border-blue-500/20" },
-  { name: "Science", icon: FlaskConical, count: 207, gradient: "from-teal-500/20 to-emerald-500/10", iconColor: "text-teal-500", border: "border-teal-500/20" },
-  { name: "History", icon: ScrollText, count: 193, gradient: "from-amber-500/20 to-yellow-500/10", iconColor: "text-amber-500", border: "border-amber-500/20" },
-  { name: "Travel", icon: Globe, count: 88, gradient: "from-sky-500/20 to-blue-500/10", iconColor: "text-sky-500", border: "border-sky-500/20" },
-  { name: "Music", icon: Music, count: 74, gradient: "from-indigo-500/20 to-violet-500/10", iconColor: "text-indigo-500", border: "border-indigo-500/20" },
-  { name: "Film & Media", icon: Film, count: 96, gradient: "from-red-500/20 to-orange-500/10", iconColor: "text-red-500", border: "border-red-500/20" },
-  { name: "Romance", icon: Heart, count: 211, gradient: "from-rose-500/20 to-pink-500/10", iconColor: "text-rose-500", border: "border-rose-500/20" },
-  { name: "Fantasy", icon: Star, count: 176, gradient: "from-fuchsia-500/20 to-purple-500/10", iconColor: "text-fuchsia-500", border: "border-fuchsia-500/20" },
-  { name: "Technology", icon: Cpu, count: 245, gradient: "from-cyan-500/20 to-teal-500/10", iconColor: "text-cyan-500", border: "border-cyan-500/20" },
-  { name: "Nature", icon: Leaf, count: 63, gradient: "from-green-500/20 to-lime-500/10", iconColor: "text-green-500", border: "border-green-500/20" },
-  { name: "Finance", icon: Coins, count: 159, gradient: "from-yellow-500/20 to-amber-500/10", iconColor: "text-yellow-600", border: "border-yellow-500/20" },
-  { name: "Psychology", icon: Brain, count: 182, gradient: "from-purple-500/20 to-indigo-500/10", iconColor: "text-purple-500", border: "border-purple-500/20" },
-  { name: "Art History", icon: Brush, count: 77, gradient: "from-orange-500/20 to-red-500/10", iconColor: "text-orange-500", border: "border-orange-500/20" },
-  { name: "Adventure", icon: Mountain, count: 134, gradient: "from-lime-500/20 to-green-500/10", iconColor: "text-lime-600", border: "border-lime-500/20" },
-  { name: "Astronomy", icon: Telescope, count: 52, gradient: "from-blue-500/20 to-indigo-500/10", iconColor: "text-blue-600", border: "border-blue-600/20" },
-  { name: "Action & War", icon: Swords, count: 108, gradient: "from-red-500/20 to-rose-500/10", iconColor: "text-red-600", border: "border-red-600/20" },
-  { name: "Children's", icon: Baby, count: 224, gradient: "from-sky-400/20 to-blue-400/10", iconColor: "text-sky-500", border: "border-sky-400/20" },
-  { name: "Non-Fiction", icon: BookOpen, count: 301, gradient: "from-stone-500/20 to-neutral-500/10", iconColor: "text-stone-500", border: "border-stone-500/20" },
+  { name: "Fiction", icon: BookOpen, count: getBookCountByCategory("Fiction"), gradient: "from-violet-500/20 to-purple-500/10", iconColor: "text-violet-500", border: "border-violet-500/20" },
+  { name: "Design & Art", icon: Palette, count: getBookCountByCategory("Design & Art"), gradient: "from-pink-500/20 to-rose-500/10", iconColor: "text-pink-500", border: "border-pink-500/20" },
+  { name: "Programming", icon: Code2, count: getBookCountByCategory("Programming"), gradient: "from-blue-500/20 to-cyan-500/10", iconColor: "text-blue-500", border: "border-blue-500/20" },
+  { name: "Science", icon: FlaskConical, count: getBookCountByCategory("Science"), gradient: "from-teal-500/20 to-emerald-500/10", iconColor: "text-teal-500", border: "border-teal-500/20" },
+  { name: "History", icon: ScrollText, count: getBookCountByCategory("History"), gradient: "from-amber-500/20 to-yellow-500/10", iconColor: "text-amber-500", border: "border-amber-500/20" },
+  { name: "Travel", icon: Globe, count: getBookCountByCategory("Travel"), gradient: "from-sky-500/20 to-blue-500/10", iconColor: "text-sky-500", border: "border-sky-500/20" },
+  { name: "Music", icon: Music, count: getBookCountByCategory("Music"), gradient: "from-indigo-500/20 to-violet-500/10", iconColor: "text-indigo-500", border: "border-indigo-500/20" },
+  { name: "Film & Media", icon: Film, count: getBookCountByCategory("Film & Media"), gradient: "from-red-500/20 to-orange-500/10", iconColor: "text-red-500", border: "border-red-500/20" },
+  { name: "Romance", icon: Heart, count: getBookCountByCategory("Romance"), gradient: "from-rose-500/20 to-pink-500/10", iconColor: "text-rose-500", border: "border-rose-500/20" },
+  { name: "Fantasy", icon: Star, count: getBookCountByCategory("Fantasy"), gradient: "from-fuchsia-500/20 to-purple-500/10", iconColor: "text-fuchsia-500", border: "border-fuchsia-500/20" },
+  { name: "Technology", icon: Cpu, count: getBookCountByCategory("Technology"), gradient: "from-cyan-500/20 to-teal-500/10", iconColor: "text-cyan-500", border: "border-cyan-500/20" },
+  { name: "Nature", icon: Leaf, count: getBookCountByCategory("Nature"), gradient: "from-green-500/20 to-lime-500/10", iconColor: "text-green-500", border: "border-green-500/20" },
+  { name: "Finance", icon: Coins, count: getBookCountByCategory("Finance"), gradient: "from-yellow-500/20 to-amber-500/10", iconColor: "text-yellow-600", border: "border-yellow-500/20" },
+  { name: "Psychology", icon: Brain, count: getBookCountByCategory("Psychology"), gradient: "from-purple-500/20 to-indigo-500/10", iconColor: "text-purple-500", border: "border-purple-500/20" },
+  { name: "Art History", icon: Brush, count: getBookCountByCategory("Art History"), gradient: "from-orange-500/20 to-red-500/10", iconColor: "text-orange-500", border: "border-orange-500/20" },
+  { name: "Adventure", icon: Mountain, count: getBookCountByCategory("Adventure"), gradient: "from-lime-500/20 to-green-500/10", iconColor: "text-lime-600", border: "border-lime-500/20" },
+  { name: "Astronomy", icon: Telescope, count: getBookCountByCategory("Astronomy"), gradient: "from-blue-500/20 to-indigo-500/10", iconColor: "text-blue-600", border: "border-blue-600/20" },
+  { name: "Action & War", icon: Swords, count: getBookCountByCategory("Action & War"), gradient: "from-red-500/20 to-rose-500/10", iconColor: "text-red-600", border: "border-red-600/20" },
+  { name: "Children's", icon: Baby, count: getBookCountByCategory("Children's"), gradient: "from-sky-400/20 to-blue-400/10", iconColor: "text-sky-500", border: "border-sky-400/20" },
+  { name: "Non-Fiction", icon: BookOpen, count: getBookCountByCategory("Non-Fiction"), gradient: "from-stone-500/20 to-neutral-500/10", iconColor: "text-stone-500", border: "border-stone-500/20" },
 ]
 
 const containerVariants = {

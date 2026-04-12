@@ -6,29 +6,7 @@ import { Button } from "../components/ui/Button"
 import { Skeleton } from "../components/ui/Skeleton"
 import { useSearchParams } from "react-router-dom"
 
-// Shared book data
-const BOOK_COVERS = [
-  "1544947950-fa07a98d237f",
-  "1512820790803-83ca734da794",
-  "1589829085413-56de8ae18c73",
-  "1481627834876-b7833e8f5570",
-  "1495446815901-a7297e633e8d",
-  "1524578271613-d550eacf6090",
-  "1457369804613-52c61a468e7d"
-]
-
-const CATEGORY_LIST = ["Fiction", "Design", "Programming", "Science", "History", "Psychology", "Technology", "Self-Help", "Fantasy", "Romance", "Non-Fiction"]
-
-const ALL_BOOKS = Array.from({ length: 82 }).map((_, i) => ({
-  id: `book-${i}`,
-  title: `The Art of ${["Programming", "Design", "Writing", "Thinking", "Leadership", "Creative Coding", "Science", "History"][i % 8]}`,
-  author: ["Don Norman", "Robert C. Martin", "Martin Fowler", "Kent Beck", "Linus Torvalds", "Jane Austen"][i % 6],
-  price: 15 + (i * 1.5),
-  rating: parseFloat((4 + Math.random()).toPrecision(2)),
-  category: CATEGORY_LIST[i % CATEGORY_LIST.length],
-  coverUrl: `https://images.unsplash.com/photo-${BOOK_COVERS[i % BOOK_COVERS.length]}?auto=format&fit=crop&q=80&w=400`,
-  language: i % 2 === 0 ? "English" : "Spanish"
-}))
+import { CATEGORY_NAMES as CATEGORY_LIST, ALL_BOOKS } from "../data/books"
 
 export const BookListing = () => {
   const [searchParams] = useSearchParams()
