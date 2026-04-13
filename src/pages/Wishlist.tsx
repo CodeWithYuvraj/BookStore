@@ -4,6 +4,63 @@ import { Link } from "react-router-dom"
 import { Button } from "../components/ui/Button"
 import { useWishlist } from "../context/WishlistContext"
 import { useCart } from "../context/CartContext"
+import { AnimatedDeleteButton } from "../components/ui/AnimatedDeleteButton"
+import { useRef, useState } from "react"
+
+const WishlistCard = ({ item, index, removeItem, handleMoveToCart }: any) => {
+  const itemRef = useRef<HTMLDivElement>(null);
+  const [hidden, setHidden] = useState(false);
+
+  return (
+    <motion.div
+      key={item.id}
+      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      animate={{ opacity: hidden ? 0 : 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ delay: hidden ? 0 : index * 0.05 }}
+      layout
+      className="group relative flex flex-col rounded-2xl bg-card p-4 shadow-sm border border-border hover:shadow-md transition-shadow"
+    >
+      {/* Remove button */}
+      <div className="absolute top-4 right-4 z-10 bg-background/80 rounded-full backdrop-blur-sm shadow-sm transition-colors border border-border/50 hover:border-destructive/30">
+        <AnimatedDeleteButton 
+          itemRef={itemRef} 
+          onBeforeDelete={() => setHidden(true)} 
+          onDelete={() => removeItem(item.id)} 
+        />
+      </div>
+
+      <div ref={itemRef} className="flex flex-col flex-1">
+        {/* Cover */}
+        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-muted mb-4 border border-border/50">
+          <Link to={`/books/${item.id}`}>
+            <img src={item.coverUrl} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          </Link>
+        </div>
+
+        <div className="flex flex-col flex-1">
+          {item.category && <span className="text-xs text-primary font-medium mb-1">{item.category}</span>}
+          <Link to={`/books/${item.id}`}>
+            <h3 className="line-clamp-2 text-base font-bold text-foreground hover:text-primary transition-colors">{item.title}</h3>
+          </Link>
+          <p className="text-sm text-muted-foreground mt-0.5 mb-4">{item.author}</p>
+
+          <div className="mt-auto flex items-center justify-between">
+            <span className="text-xl font-bold text-foreground">${item.price.toFixed(2)}</span>
+            <Button
+              size="sm"
+              onClick={() => handleMoveToCart(item)}
+              className="gap-1.5"
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 
 export const Wishlist = () => {
   const { items, removeItem } = useWishlist()
@@ -47,49 +104,13 @@ export const Wishlist = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <AnimatePresence>
             {items.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: index * 0.05 }}
-                layout
-                className="group relative flex flex-col rounded-2xl bg-card p-4 shadow-sm border border-border hover:shadow-md transition-shadow"
-              >
-                {/* Remove button */}
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="absolute top-6 right-6 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-destructive backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground transition-colors shadow-sm"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-
-                {/* Cover */}
-                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-muted mb-4 border border-border/50">
-                  <Link to={`/books/${item.id}`}>
-                    <img src={item.coverUrl} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                  </Link>
-                </div>
-
-                <div className="flex flex-col flex-1">
-                  {item.category && <span className="text-xs text-primary font-medium mb-1">{item.category}</span>}
-                  <Link to={`/books/${item.id}`}>
-                    <h3 className="line-clamp-2 text-base font-bold text-foreground hover:text-primary transition-colors">{item.title}</h3>
-                  </Link>
-                  <p className="text-sm text-muted-foreground mt-0.5 mb-4">{item.author}</p>
-
-                  <div className="mt-auto flex items-center justify-between">
-                    <span className="text-xl font-bold text-foreground">${item.price.toFixed(2)}</span>
-                    <Button
-                      size="sm"
-                      onClick={() => handleMoveToCart(item)}
-                      className="gap-1.5"
-                    >
-                      <ShoppingCart className="h-4 w-4" /> Move to Cart
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
+              <WishlistCard 
+                key={item.id} 
+                item={item} 
+                index={index} 
+                removeItem={removeItem} 
+                handleMoveToCart={handleMoveToCart} 
+              />
             ))}
           </AnimatePresence>
         </div>

@@ -1,6 +1,57 @@
-import { useState } from "react"
 import { Search, Filter, Plus, Edit2, Trash2, AlertTriangle, MoreVertical } from "lucide-react"
 import { Button } from "../ui/Button"
+import { AnimatedDeleteButton } from "../ui/AnimatedDeleteButton"
+import { useRef, useState } from "react"
+import { motion } from "framer-motion"
+
+const InventoryRow = ({ item }: { item: any }) => {
+  const itemRef = useRef<HTMLTableRowElement>(null);
+  const [hidden, setHidden] = useState(false);
+
+  return (
+    <motion.tr 
+      animate={{ opacity: hidden ? 0 : 1 }}
+      className="hover:bg-muted/30 transition-colors group"
+      layout
+    >
+      <td className="px-6 py-4 text-sm" ref={itemRef}>
+        <div className="font-bold text-foreground">{item.title}</div>
+        <div className="text-xs text-muted-foreground mt-0.5">ID: {item.id}</div>
+      </td>
+      <td className="px-6 py-4 text-sm font-medium">
+        <div className="flex items-center gap-2">
+           {item.stock}
+           {item.stock < 10 && <AlertTriangle className="h-4 w-4 text-amber-500" />}
+        </div>
+      </td>
+      <td className="px-6 py-4 text-sm font-bold text-foreground">${item.price.toFixed(2)}</td>
+      <td className="px-6 py-4 text-sm">
+        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+          item.status === 'In Stock' ? 'bg-green-500/10 text-green-600' : 
+          item.status === 'Low Stock' ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'
+        }`}>
+          {item.status}
+        </span>
+      </td>
+      <td className="px-6 py-4 text-right">
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg hover:bg-primary/10 hover:text-primary">
+            <Edit2 className="h-4 w-4" />
+          </Button>
+          <AnimatedDeleteButton 
+            itemRef={itemRef} 
+            onBeforeDelete={() => setHidden(true)} 
+            onDelete={() => console.log('Deleting', item.id)} // In mock system, just log
+          />
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </div>
+      </td>
+    </motion.tr>
+  )
+}
+
 
 const MOCK_INVENTORY = [
   { id: "1", title: "The Design of Everyday Things", stock: 42, price: 24.99, status: "In Stock" },
@@ -53,40 +104,7 @@ export const InventoryManager = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {MOCK_INVENTORY.map((item) => (
-                <tr key={item.id} className="hover:bg-muted/30 transition-colors group">
-                  <td className="px-6 py-4 text-sm">
-                    <div className="font-bold text-foreground">{item.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">ID: {item.id}</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                       {item.stock}
-                       {item.stock < 10 && <AlertTriangle className="h-4 w-4 text-amber-500" />}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-bold text-foreground">${item.price.toFixed(2)}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                      item.status === 'In Stock' ? 'bg-green-500/10 text-green-600' : 
-                      item.status === 'Low Stock' ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'
-                    }`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg hover:bg-primary/10 hover:text-primary">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg hover:bg-destructive/10 hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
+                <InventoryRow key={item.id} item={item} />
               ))}
             </tbody>
           </table>

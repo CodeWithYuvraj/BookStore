@@ -5,6 +5,48 @@ import { Link } from "react-router-dom"
 import { useCart } from "../../context/CartContext"
 import { useToast } from "../../context/ToastContext"
 import { Button } from "./Button"
+import { AnimatedDeleteButton } from "./AnimatedDeleteButton"
+import { useRef } from "react"
+
+const CartDrawerItem = ({ item, closeDrawer, updateQuantity, removeItem }: any) => {
+  const itemRef = useRef<HTMLDivElement>(null);
+  const [hidden, setHidden] = useState(false);
+
+  return (
+    <motion.li 
+       key={item.id} 
+       className="flex gap-4 transition-opacity duration-300"
+       style={{ opacity: hidden ? 0 : 1 }}
+       layout
+    >
+      <div ref={itemRef} className="flex gap-4 flex-1">
+        <img src={item.coverUrl} alt={item.title} className="w-20 h-28 object-cover rounded-md border border-border shrink-0" />
+        <div className="flex-1 flex flex-col">
+          <Link to={`/books/${item.id}`} onClick={closeDrawer} className="font-semibold text-foreground hover:text-primary line-clamp-2">
+            {item.title}
+          </Link>
+          <p className="text-sm text-muted-foreground mb-2">{item.author}</p>
+          <div className="mt-auto flex items-center justify-between">
+            <span className="font-bold">${item.price.toFixed(2)}</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center border border-input rounded-md bg-background px-1">
+                <button onClick={() => updateQuantity(item.id, -1)} className="w-6 h-6 flex items-center justify-center text-foreground hover:bg-muted">-</button>
+                <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 flex items-center justify-center text-foreground hover:bg-muted">+</button>
+              </div>
+              <AnimatedDeleteButton 
+                itemRef={itemRef} 
+                onBeforeDelete={() => setHidden(true)} 
+                onDelete={() => removeItem(item.id)} 
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.li>
+  )
+}
+
 
 export const CartDrawer = () => {
   const { isDrawerOpen, closeDrawer, items, updateQuantity, removeItem } = useCart()
@@ -66,28 +108,13 @@ export const CartDrawer = () => {
               ) : (
                 <ul className="space-y-6">
                   {items.map((item) => (
-                    <li key={item.id} className="flex gap-4">
-                      <img src={item.coverUrl} alt={item.title} className="w-20 h-28 object-cover rounded-md border border-border" />
-                      <div className="flex-1 flex flex-col">
-                        <Link to={`/books/${item.id}`} onClick={closeDrawer} className="font-semibold text-foreground hover:text-primary line-clamp-2">
-                          {item.title}
-                        </Link>
-                        <p className="text-sm text-muted-foreground mb-2">{item.author}</p>
-                        <div className="mt-auto flex items-center justify-between">
-                          <span className="font-bold">${item.price.toFixed(2)}</span>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center border border-input rounded-md bg-background px-1">
-                              <button onClick={() => updateQuantity(item.id, -1)} className="w-6 h-6 flex items-center justify-center text-foreground hover:bg-muted">-</button>
-                              <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 flex items-center justify-center text-foreground hover:bg-muted">+</button>
-                            </div>
-                            <button onClick={() => removeItem(item.id)} className="text-muted-foreground hover:text-destructive p-1">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
+                    <CartDrawerItem 
+                      key={item.id} 
+                      item={item} 
+                      closeDrawer={closeDrawer} 
+                      updateQuantity={updateQuantity} 
+                      removeItem={removeItem} 
+                    />
                   ))}
                 </ul>
               )}

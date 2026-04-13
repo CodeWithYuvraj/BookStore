@@ -4,6 +4,64 @@ import { Link } from "react-router-dom"
 import { Button } from "../components/ui/Button"
 import { useCart } from "../context/CartContext"
 import { useWishlist } from "../context/WishlistContext"
+import { AnimatedDeleteButton } from "../components/ui/AnimatedDeleteButton"
+import { useRef, useState } from "react"
+
+const CartItemRow = ({ item, isWishlisted, moveToWishlist, updateQuantity, removeItem }: any) => {
+  const itemRef = useRef<HTMLDivElement>(null);
+  const [hidden, setHidden] = useState(false);
+
+  return (
+    <motion.li
+      key={item.id}
+      layout
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: hidden ? 0 : 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+      className="p-5 grid grid-cols-1 md:grid-cols-12 gap-5 items-center transition-opacity duration-300"
+    >
+      {/* Product */}
+      <div className="md:col-span-6 flex items-center gap-4" ref={itemRef}>
+        <Link to={`/books/${item.id}`}>
+          <img src={item.coverUrl} alt={item.title} className="w-14 h-20 object-cover rounded-lg border border-border shadow-sm shrink-0" />
+        </Link>
+        <div className="min-w-0">
+          <Link to={`/books/${item.id}`} className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-2 text-sm">{item.title}</Link>
+          <p className="text-xs text-muted-foreground mt-0.5">{item.author}</p>
+          <p className="text-sm font-bold text-primary mt-1">${item.price.toFixed(2)}</p>
+          <button onClick={() => moveToWishlist(item)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 mt-2 transition-colors">
+            <Heart className={`h-3.5 w-3.5 ${isWishlisted(item.id) ? "fill-red-500 text-red-500" : ""}`} />
+            {isWishlisted(item.id) ? "In Wishlist" : "Save for later"}
+          </button>
+        </div>
+      </div>
+
+      {/* Qty */}
+      <div className="md:col-span-3 flex justify-start md:justify-center">
+        <div className="flex items-center border border-input rounded-lg p-0.5 bg-background">
+          <button onClick={() => updateQuantity(item.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted text-foreground transition-colors font-bold">-</button>
+          <span className="w-10 text-center text-sm font-semibold">{item.quantity}</span>
+          <button onClick={() => updateQuantity(item.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted text-foreground transition-colors font-bold">+</button>
+        </div>
+      </div>
+
+      {/* Total */}
+      <div className="md:col-span-2 text-right hidden md:block">
+        <span className="font-bold text-foreground">${(item.price * item.quantity).toFixed(2)}</span>
+      </div>
+
+      {/* Remove */}
+      <div className="md:col-span-1 flex justify-end">
+        <AnimatedDeleteButton 
+          itemRef={itemRef} 
+          onBeforeDelete={() => setHidden(true)} 
+          onDelete={() => removeItem(item.id)} 
+        />
+      </div>
+    </motion.li>
+  )
+}
+
 
 export const Cart = () => {
   const { items, updateQuantity, removeItem } = useCart()
@@ -53,51 +111,14 @@ export const Cart = () => {
               <ul className="divide-y divide-border">
                 <AnimatePresence>
                   {items.map(item => (
-                    <motion.li
-                      key={item.id}
-                      layout
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0, overflow: "hidden" }}
-                      className="p-5 grid grid-cols-1 md:grid-cols-12 gap-5 items-center"
-                    >
-                      {/* Product */}
-                      <div className="md:col-span-6 flex items-center gap-4">
-                        <Link to={`/books/${item.id}`}>
-                          <img src={item.coverUrl} alt={item.title} className="w-14 h-20 object-cover rounded-lg border border-border shadow-sm shrink-0" />
-                        </Link>
-                        <div className="min-w-0">
-                          <Link to={`/books/${item.id}`} className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-2 text-sm">{item.title}</Link>
-                          <p className="text-xs text-muted-foreground mt-0.5">{item.author}</p>
-                          <p className="text-sm font-bold text-primary mt-1">${item.price.toFixed(2)}</p>
-                          <button onClick={() => moveToWishlist(item)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 mt-2 transition-colors">
-                            <Heart className={`h-3.5 w-3.5 ${isWishlisted(item.id) ? "fill-red-500 text-red-500" : ""}`} />
-                            {isWishlisted(item.id) ? "In Wishlist" : "Save for later"}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Qty */}
-                      <div className="md:col-span-3 flex justify-start md:justify-center">
-                        <div className="flex items-center border border-input rounded-lg p-0.5 bg-background">
-                          <button onClick={() => updateQuantity(item.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted text-foreground transition-colors font-bold">-</button>
-                          <span className="w-10 text-center text-sm font-semibold">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted text-foreground transition-colors font-bold">+</button>
-                        </div>
-                      </div>
-
-                      {/* Total */}
-                      <div className="md:col-span-2 text-right hidden md:block">
-                        <span className="font-bold text-foreground">${(item.price * item.quantity).toFixed(2)}</span>
-                      </div>
-
-                      {/* Remove */}
-                      <div className="md:col-span-1 flex justify-end">
-                        <button onClick={() => removeItem(item.id)} className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </motion.li>
+                    <CartItemRow 
+                      key={item.id} 
+                      item={item} 
+                      isWishlisted={isWishlisted} 
+                      moveToWishlist={moveToWishlist} 
+                      updateQuantity={updateQuantity} 
+                      removeItem={removeItem} 
+                    />
                   ))}
                 </AnimatePresence>
               </ul>
