@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 
 interface AnimatedDeleteButtonProps {
-  itemRef: React.RefObject<HTMLElement>;
+  itemRef: React.RefObject<any>;
   onDelete: () => void;
   className?: string;
   onBeforeDelete?: () => void; // Called immediately on click to hidden original
