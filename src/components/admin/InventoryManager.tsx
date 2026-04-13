@@ -5,7 +5,7 @@ import { useRef, useState } from "react"
 import { motion } from "framer-motion"
 
 const InventoryRow = ({ item }: { item: any }) => {
-  const itemRef = useRef<HTMLTableRowElement>(null);
+  const itemRef = useRef<HTMLElement>(null);
   const [hidden, setHidden] = useState(false);
 
   return (
