@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { useToast } from "./ToastContext"
 
-interface CartItem {
+export interface CartItem {
   id: string
   title: string
   author: string

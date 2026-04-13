@@ -2,15 +2,33 @@ import { Search, Filter, Plus, Edit2, Trash2, AlertTriangle, MoreVertical } from
 import { Button } from "../ui/Button"
 import { AnimatedDeleteButton } from "../ui/AnimatedDeleteButton"
 import { useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
-const InventoryRow = ({ item }: { item: any }) => {
-  const itemRef = useRef<any>(null);
-  const [hidden, setHidden] = useState(false);
+interface InventoryItem {
+  id: string;
+  title: string;
+  stock: number;
+  price: number;
+  status: string;
+}
+
+const InventoryRow = ({ item }: { item: InventoryItem }) => {
+  const itemRef = useRef<HTMLTableCellElement>(null);
 
   return (
     <motion.tr 
-      animate={{ opacity: hidden ? 0 : 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ 
+        opacity: [1, 1, 0], 
+        height: [undefined, undefined, 0], 
+        overflow: "hidden" 
+      }}
+      transition={{ 
+        exit: { 
+          duration: 2.5, 
+          times: [0, 0.72, 1] 
+        } 
+      }}
       className="hover:bg-muted/30 transition-colors group"
       layout
     >
@@ -40,7 +58,6 @@ const InventoryRow = ({ item }: { item: any }) => {
           </Button>
           <AnimatedDeleteButton 
             itemRef={itemRef} 
-            onBeforeDelete={() => setHidden(true)} 
             onDelete={() => console.log('Deleting', item.id)} // In mock system, just log
           />
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg">
@@ -102,10 +119,12 @@ export const InventoryManager = () => {
                 <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {MOCK_INVENTORY.map((item) => (
-                <InventoryRow key={item.id} item={item} />
-              ))}
+            <tbody className="divide-y divide-border relative">
+              <AnimatePresence mode="popLayout">
+                {MOCK_INVENTORY.map((item) => (
+                  <InventoryRow key={item.id} item={item} />
+                ))}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>

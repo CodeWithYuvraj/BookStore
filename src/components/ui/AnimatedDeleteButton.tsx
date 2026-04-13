@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 
 interface AnimatedDeleteButtonProps {
-  itemRef: React.RefObject<any>;
+  itemRef: React.RefObject<HTMLElement>;
   onDelete: () => void;
   className?: string;
   onBeforeDelete?: () => void; // Called immediately on click to hidden original
@@ -30,37 +30,35 @@ export function AnimatedDeleteButton({ itemRef, onDelete, onBeforeDelete, classN
   }, []);
 
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
-    
-    if (isDeleting || !itemRef.current || !buttonRef.current) return;
-    
-    setIsDeleting(true);
+    if (isDeleting || !buttonRef.current || !itemRef.current) return;
+
     if (onBeforeDelete) onBeforeDelete();
+    setIsDeleting(true);
 
     const startRect = itemRef.current.getBoundingClientRect();
     const endRect = buttonRef.current.getBoundingClientRect();
+
+    // Capture the current visual state of the item to clone it
     const html = itemRef.current.outerHTML;
 
     setFlightData({ html, start: startRect, end: endRect });
 
-    // Slowed down timing:
-    // Flight takes 1000ms.
-    // Let's call onDelete after flight completes (e.g., 1100ms).
-
     setTimeout(() => {
       if (isMounted.current) {
         onDelete();
+        
+        // Final cleanup after animation timeframe
         setTimeout(() => {
           if (isMounted.current) {
             setIsDeleting(false);
             setFlightData(null);
           }
-        }, 500);
+        }, 3000); 
       } else {
         onDelete();
       }
-    }, 1100);
+    }, 50);
   };
 
   return (
@@ -78,7 +76,7 @@ export function AnimatedDeleteButton({ itemRef, onDelete, onBeforeDelete, classN
               ? { x: [0, -2, 2, -2, 2, 0] } 
           : { x: 0 }
           }
-          transition={{ delay: 1.0, duration: 0.4 }}
+          transition={{ delay: 2.0, duration: 0.5 }}
           className="relative w-5 h-5 flex flex-col items-center"
         >
           {/* Lid */}
@@ -89,15 +87,15 @@ export function AnimatedDeleteButton({ itemRef, onDelete, onBeforeDelete, classN
             transition={
               isDeleting
                 ? {
-                    duration: 0.3,
+                    duration: 0.5,
                     ease: "easeOut",
                   }
                 : {
-                    duration: 0.4,
+                    duration: 0.6,
                     type: "spring",
-                    stiffness: 200,
-                    damping: 15,
-                    delay: 0.8,
+                    stiffness: 150,
+                    damping: 12,
+                    delay: 1.8,
                   }
             }
           >
@@ -149,20 +147,21 @@ export function AnimatedDeleteButton({ itemRef, onDelete, onBeforeDelete, classN
             }}
             animate={{
               x: flightData.end.x + flightData.end.width / 2 - flightData.start.width / 2,
-              y: flightData.end.y - 20, // Higher arc for slow motion
-              opacity: [1, 1, 0],
-              scale: [1, 1.1, 0.15],
+              y: flightData.end.y - 40, // Much higher arc for slow motion visibility
+              opacity: [1, 1, 0.5, 0],
+              scale: [1, 1.15, 0.4, 0.1],
               boxShadow: [
                 "0px 0px 0px rgba(0,0,0,0)",
-                "0px 15px 30px rgba(0,0,0,0.3)",
+                "0px 25px 50px rgba(0,0,0,0.4)",
+                "0px 5px 10px rgba(0,0,0,0.2)",
                 "0px 0px 0px rgba(0,0,0,0)",
               ],
             }}
             transition={{
-              duration: 1.0,
+              duration: 2.0,
               ease: flightEasing,
-              opacity: { times: [0, 0.9, 1] },
-              scale: { times: [0, 0.2, 1] },
+              opacity: { times: [0, 0.8, 0.95, 1] },
+              scale: { times: [0, 0.2, 0.8, 1] },
             }}
             style={{
               position: "fixed",

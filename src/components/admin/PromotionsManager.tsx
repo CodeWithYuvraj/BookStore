@@ -2,15 +2,36 @@ import { Tag, Calendar, Percent, Plus, Trash2, Edit2, Play, Pause } from "lucide
 import { Button } from "../ui/Button"
 import { AnimatedDeleteButton } from "../ui/AnimatedDeleteButton"
 import { useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
-const PromoCard = ({ promo }: { promo: any }) => {
+interface Promotion {
+  id: string;
+  code: string;
+  discount: string;
+  type: string;
+  expiry: string;
+  status: string;
+  usage: string;
+}
+
+const PromoCard = ({ promo }: { promo: Promotion }) => {
   const itemRef = useRef<HTMLDivElement>(null);
-  const [hidden, setHidden] = useState(false);
 
   return (
     <motion.div 
-      animate={{ opacity: hidden ? 0 : 1, scale: hidden ? 0.95 : 1 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ 
+        opacity: [1, 1, 0], 
+        scale: [1, 1, 0.9], 
+        height: [undefined, undefined, 0], 
+        overflow: "hidden" 
+      }}
+      transition={{ 
+        exit: { 
+          duration: 2.5, 
+          times: [0, 0.72, 1] 
+        } 
+      }}
       className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col"
       layout
     >
@@ -53,7 +74,6 @@ const PromoCard = ({ promo }: { promo: any }) => {
          </Button>
          <AnimatedDeleteButton 
             itemRef={itemRef} 
-            onBeforeDelete={() => setHidden(true)} 
             onDelete={() => console.log('Deleting promo', promo.id)} 
             className="h-9 w-9 p-0 rounded-xl"
          />
@@ -81,9 +101,11 @@ export const PromotionsManager = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MOCK_PROMOS.map((promo) => (
-            <PromoCard key={promo.id} promo={promo} />
-          ))}
+          <AnimatePresence mode="popLayout">
+            {MOCK_PROMOS.map((promo) => (
+              <PromoCard key={promo.id} promo={promo} />
+            ))}
+          </AnimatePresence>
 
          {/* Add card */}
          <button className="bg-background border-2 border-dashed border-border rounded-2xl p-6 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all group">

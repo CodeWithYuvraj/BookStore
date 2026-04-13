@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useToast } from "./ToastContext"
 import { useCart } from "./CartContext"
 
-interface WishlistItem {
+export interface WishlistItem {
   id: string
   title: string
   author: string

@@ -5,19 +5,39 @@ import { Button } from "../components/ui/Button"
 import { useCart } from "../context/CartContext"
 import { useWishlist } from "../context/WishlistContext"
 import { AnimatedDeleteButton } from "../components/ui/AnimatedDeleteButton"
-import { useRef, useState } from "react"
+import { useRef } from "react"
+import { CartItem } from "../context/CartContext"
 
-const CartItemRow = ({ item, isWishlisted, moveToWishlist, updateQuantity, removeItem }: any) => {
+interface CartItemRowProps {
+  item: CartItem;
+  isWishlisted: (id: string) => boolean;
+  moveToWishlist: (item: CartItem) => void;
+  updateQuantity: (id: string, delta: number) => void;
+  removeItem: (id: string) => void;
+}
+
+const CartItemRow = ({ item, isWishlisted, moveToWishlist, updateQuantity, removeItem }: CartItemRowProps) => {
   const itemRef = useRef<HTMLDivElement>(null);
-  const [hidden, setHidden] = useState(false);
 
   return (
     <motion.li
       key={item.id}
       layout
       initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: hidden ? 0 : 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ 
+        opacity: [1, 1, 0], 
+        scale: [1, 1, 0.9], 
+        height: [undefined, undefined, 0], 
+        overflow: "hidden" 
+      }}
+      transition={{ 
+        exit: { 
+          duration: 2.5, 
+          ease: "easeInOut",
+          times: [0, 0.72, 1] 
+        }
+      }}
       className="p-5 grid grid-cols-1 md:grid-cols-12 gap-5 items-center transition-opacity duration-300"
     >
       {/* Product */}
@@ -54,7 +74,6 @@ const CartItemRow = ({ item, isWishlisted, moveToWishlist, updateQuantity, remov
       <div className="md:col-span-1 flex justify-end">
         <AnimatedDeleteButton 
           itemRef={itemRef} 
-          onBeforeDelete={() => setHidden(true)} 
           onDelete={() => removeItem(item.id)} 
         />
       </div>
@@ -83,92 +102,102 @@ export const Cart = () => {
         {items.length > 0 && <span className="text-lg font-medium text-muted-foreground">({items.length} {items.length === 1 ? "item" : "items"})</span>}
       </h1>
 
-      {items.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-24 text-center bg-card rounded-2xl border border-border"
-        >
-          <ShoppingCart className="h-16 w-16 text-muted-foreground/30 mb-6" />
-          <h2 className="text-2xl font-bold text-foreground mb-2">Your cart is empty</h2>
-          <p className="text-muted-foreground mb-8 max-w-md">Looks like you haven't added any books yet. Discover your next great read!</p>
-          <Link to="/books">
-            <Button size="lg">Explore Books <ArrowRight className="ml-2 h-4 w-4" /></Button>
-          </Link>
-        </motion.div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Items */}
-          <div className="lg:col-span-8">
-            <div className="bg-card rounded-2xl border border-border overflow-hidden">
-              <div className="hidden md:grid grid-cols-12 gap-4 border-b border-border p-5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                <div className="col-span-6">Product</div>
-                <div className="col-span-3 text-center">Quantity</div>
-                <div className="col-span-2 text-right">Total</div>
-                <div className="col-span-1" />
+      <AnimatePresence mode="wait">
+        {items.length === 0 ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center justify-center py-24 text-center bg-card rounded-2xl border border-border"
+          >
+            <ShoppingCart className="h-16 w-16 text-muted-foreground/30 mb-6" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">Your cart is empty</h2>
+            <p className="text-muted-foreground mb-8 max-w-md">Looks like you haven't added any books yet. Discover your next great read!</p>
+            <Link to="/books">
+              <Button size="lg">Explore Books <ArrowRight className="ml-2 h-4 w-4" /></Button>
+            </Link>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="cart-content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-10"
+          >
+            {/* Items */}
+            <div className="lg:col-span-8">
+              <div className="bg-card rounded-2xl border border-border overflow-hidden">
+                <div className="hidden md:grid grid-cols-12 gap-4 border-b border-border p-5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="col-span-6">Product</div>
+                  <div className="col-span-3 text-center">Quantity</div>
+                  <div className="col-span-2 text-right">Total</div>
+                  <div className="col-span-1" />
+                </div>
+
+                <ul className="divide-y divide-border">
+                  <AnimatePresence mode="popLayout">
+                    {items.map(item => (
+                      <CartItemRow 
+                        key={item.id} 
+                        item={item} 
+                        isWishlisted={isWishlisted} 
+                        moveToWishlist={moveToWishlist} 
+                        updateQuantity={updateQuantity} 
+                        removeItem={removeItem} 
+                      />
+                    ))}
+                  </AnimatePresence>
+                </ul>
               </div>
 
-              <ul className="divide-y divide-border">
-                <AnimatePresence>
-                  {items.map(item => (
-                    <CartItemRow 
-                      key={item.id} 
-                      item={item} 
-                      isWishlisted={isWishlisted} 
-                      moveToWishlist={moveToWishlist} 
-                      updateQuantity={updateQuantity} 
-                      removeItem={removeItem} 
-                    />
-                  ))}
-                </AnimatePresence>
-              </ul>
+              <div className="mt-5 flex justify-between items-center">
+                <Link to="/books" className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors">
+                  <ArrowLeft className="h-4 w-4" /> Continue Shopping
+                </Link>
+              </div>
             </div>
 
-            <div className="mt-5 flex justify-between items-center">
-              <Link to="/books" className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors">
-                <ArrowLeft className="h-4 w-4" /> Continue Shopping
-              </Link>
-            </div>
-          </div>
+            {/* Summary */}
+            <div className="lg:col-span-4">
+              <div className="bg-card rounded-2xl border border-border p-6 shadow-sm sticky top-24">
+                <h2 className="text-lg font-bold text-foreground mb-5">Order Summary</h2>
 
-          {/* Summary */}
-          <div className="lg:col-span-4">
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-sm sticky top-24">
-              <h2 className="text-lg font-bold text-foreground mb-5">Order Summary</h2>
-
-              <div className="space-y-3 text-sm mb-5 border-b border-border pb-5">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal ({items.reduce((a, i) => a + i.quantity, 0)} items)</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <div className="space-y-3 text-sm mb-5 border-b border-border pb-5">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal ({items.reduce((a, i) => a + i.quantity, 0)} items)</span>
+                    <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span className="font-medium text-green-600 dark:text-green-400">Free</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Estimated Tax (8%)</span>
+                    <span className="font-medium">${tax.toFixed(2)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">Free</span>
+
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-base font-bold">Total</span>
+                  <span className="text-2xl font-extrabold text-foreground">${total.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Estimated Tax (8%)</span>
-                  <span className="font-medium">${tax.toFixed(2)}</span>
+
+                <Link to="/checkout">
+                  <Button className="w-full h-12 text-base shadow-md group">
+                    Proceed to Checkout <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+
+                <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                  <ShieldCheck className="h-4 w-4" /> Secure SSL checkout
                 </div>
-              </div>
-
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-base font-bold">Total</span>
-                <span className="text-2xl font-extrabold text-foreground">${total.toFixed(2)}</span>
-              </div>
-
-              <Link to="/checkout">
-                <Button className="w-full h-12 text-base shadow-md group">
-                  Proceed to Checkout <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-
-              <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                <ShieldCheck className="h-4 w-4" /> Secure SSL checkout
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

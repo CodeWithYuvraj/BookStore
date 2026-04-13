@@ -8,16 +8,38 @@ import { Button } from "./Button"
 import { AnimatedDeleteButton } from "./AnimatedDeleteButton"
 import { useRef } from "react"
 
-const CartDrawerItem = ({ item, closeDrawer, updateQuantity, removeItem }: any) => {
+import { CartItem } from "../../context/CartContext"
+
+interface CartDrawerItemProps {
+  item: CartItem;
+  closeDrawer: () => void;
+  updateQuantity: (id: string, delta: number) => void;
+  removeItem: (id: string) => void;
+}
+
+const CartDrawerItem = ({ item, closeDrawer, updateQuantity, removeItem }: CartDrawerItemProps) => {
   const itemRef = useRef<HTMLDivElement>(null);
-  const [hidden, setHidden] = useState(false);
 
   return (
     <motion.li 
        key={item.id} 
-       className="flex gap-4 transition-opacity duration-300"
-       style={{ opacity: hidden ? 0 : 1 }}
        layout
+       initial={{ opacity: 0, x: 20 }}
+       animate={{ opacity: 1, x: 0 }}
+       exit={{ 
+         opacity: [1, 1, 0], 
+         height: [undefined, undefined, 0], 
+         marginBottom: [undefined, undefined, 0],
+         overflow: "hidden"
+       }}
+       transition={{
+         exit: { 
+           duration: 2.5, 
+           ease: "easeInOut",
+           times: [0, 0.72, 1] // Stay stable until 1.8s, then fade/collapse
+         }
+       }}
+       className="flex gap-4"
     >
       <div ref={itemRef} className="flex gap-4 flex-1">
         <img src={item.coverUrl} alt={item.title} className="w-20 h-28 object-cover rounded-md border border-border shrink-0" />
@@ -36,7 +58,6 @@ const CartDrawerItem = ({ item, closeDrawer, updateQuantity, removeItem }: any) 
               </div>
               <AnimatedDeleteButton 
                 itemRef={itemRef} 
-                onBeforeDelete={() => setHidden(true)} 
                 onDelete={() => removeItem(item.id)} 
               />
             </div>
@@ -97,27 +118,44 @@ export const CartDrawer = () => {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6">
-              {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <ShoppingCart className="h-16 w-16 text-muted-foreground/30 mb-4" />
-                  <p className="text-lg font-medium text-foreground">Your cart is empty</p>
-                  <p className="text-muted-foreground mt-2 mb-6">Looks like you haven't added anything yet.</p>
-                  <Button onClick={closeDrawer}>Start Shopping</Button>
-                </div>
-              ) : (
-                <ul className="space-y-6">
-                  {items.map((item) => (
-                    <CartDrawerItem 
-                      key={item.id} 
-                      item={item} 
-                      closeDrawer={closeDrawer} 
-                      updateQuantity={updateQuantity} 
-                      removeItem={removeItem} 
-                    />
-                  ))}
-                </ul>
-              )}
+            <div className="flex-1 overflow-y-auto py-6 px-4 sm:px-6">
+              <AnimatePresence mode="wait">
+                {items.length === 0 ? (
+                  <motion.div 
+                    key="empty"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex flex-col items-center justify-center h-full py-20 text-center"
+                  >
+                    <ShoppingCart className="h-16 w-16 text-muted-foreground/20 mb-4" />
+                    <p className="text-muted-foreground font-medium">Your cart is empty</p>
+                    <p className="text-sm text-muted-foreground/60 mt-1 mb-6">Discovery your next favorite book today!</p>
+                    <button onClick={closeDrawer} className="text-primary font-bold text-sm underline underline-offset-4">Continue Shopping</button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="items-list"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <ul className="space-y-6">
+                      <AnimatePresence mode="popLayout">
+                        {items.map((item) => (
+                          <CartDrawerItem 
+                            key={item.id} 
+                            item={item} 
+                            closeDrawer={closeDrawer} 
+                            updateQuantity={updateQuantity} 
+                            removeItem={removeItem} 
+                          />
+                        ))}
+                      </AnimatePresence>
+                    </ul>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {items.length > 0 && (
